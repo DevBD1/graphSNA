@@ -67,6 +67,30 @@ Her algoritma ayrı butonla tetiklenecek ve sonucu görsel/tablo olarak sunulaca
 
 ---
 
+## Görev Dağılımı (2 Geliştirici)
+
+### Geliştirici A:
+
+Odak: Temel Yapı ve Gezinti Algoritmaları.
+
+Görevler:
+- Node, Edge ve Graph temel sınıflarını yazmak.
+- JSON Dosya Okuma/Yazma işlemleri.
+- BFS ve DFS Algoritmaları.
+- Bağlı Bileşenleri (Connected Components) Bulma.
+
+### Geliştirici B:
+
+Odak: Hesaplamalı Algoritmalar ve Görselleştirme Mantığı.
+
+Görevler:
+- Ağırlık Hesaplama Formülü (Projedeki özel formül).
+- Dijkstra ve A* (En Kısa Yol) Algoritmaları.
+- Welsh-Powell Renklendirme Algoritması.
+- Merkezilik (Degree Centrality) Hesabı.
+
+Ortak Görev: Arayüz tasarımı ve olayları (tıklama, sürükleme) beraber veya dönüşümlü yapılmalıdır.
+
 ## ✅ Teslim Kontrol Listesi
 - [ ] Kodlar OOP prensiplerine tam uygun mu? 
 - [ ] GitHub'da her iki üyenin de eşit/orantılı katkısı var mı? 
