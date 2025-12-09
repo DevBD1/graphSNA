@@ -3,9 +3,9 @@ using System.Drawing; // Required for Point (Location)
 
 namespace graphSNA.Model
 {
-    ///
+    /// <summary>
     /// Represents a user (vertex) in the social network graph.
-    ///
+    /// </summary>
     public class Node
     {
         // Unique identifier or name of the user (e.g., "Ali")
