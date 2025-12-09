@@ -1,6 +1,6 @@
 ﻿namespace graphSNA
 {
-    partial class Form1
+    public partial class Form1 : Form
     {
         /// <summary>
         ///  Required designer variable.
