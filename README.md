@@ -4,7 +4,7 @@
 
 ## 1.2 Ekip Uyeleri
 - Mehmet Burak Dorman - Öğrenci No: 251307120 - Geliştirici
-- Huseyin Erekmen - Öğrenci No: 251307099 - Geliştirici
+- Hüseyin Erekmen - Öğrenci No: 251307099 - Geliştirici
 
 ## 1.3 Tarihler
 - Proje Başlangıç Tarihi: 25 Kasım 2025
@@ -218,6 +218,3 @@ classDiagram
     
     note for Form1 "Orkestra Şefi (UI)"
 ```
-    UI-->>User: Sonucu Ekranda Göster
-```
----
