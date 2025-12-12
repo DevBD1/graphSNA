@@ -9,13 +9,13 @@ Süreç, proje gereksinimlerine ve teslim tarihlerine göre yapılandırılmış
 *Amaç: Projeye kod yazmaya başlamadan önce gerekli teorik altyapıyı ve araç kullanımını oturtmak.*
 
 ### 1.1. Teknik Altyapı ve Araçlar
-- [✅] **GitHub Kurulumu:** Repo oluşturulacak, `master` ve `test` branch'leri açılacak.
-- [✅] **IDE Kurulumu:** Visual Studio (C# WinForms) kurulumu.
+- ✅ **GitHub Kurulumu:** Repo oluşturulacak, `master` ve `test` branch'leri açılacak.
+- ✅ **IDE Kurulumu:** Visual Studio (C# WinForms) kurulumu.
 - [ ] **Markdown & Mermaid:** Raporlama için Markdown sözdizimi ve Mermaid.js ile diyagram çizimi öğrenilecek.
 
 ### 1.2. Graf Teorisi (Graph Theory) Temelleri
-- [✅] **Temel Kavramlar:** Düğüm (Node), Kenar (Edge), Komşuluk Listesi (Adjacency List) kavramları araştırılacak.
-- [✅] **Graf Türleri:** Yönsüz (Undirected) ve Ağırlıklı (Weighted) grafların mantığı kavranacak.
+- ✅ **Temel Kavramlar:** Düğüm (Node), Kenar (Edge), Komşuluk Listesi (Adjacency List) kavramları araştırılacak.
+- ✅ **Graf Türleri:** Yönsüz (Undirected) ve Ağırlıklı (Weighted) grafların mantığı kavranacak.
 
 ### 1.3. Nesne Yönelimli Programlama (OOP) Tasarımı
 - [ ] **Mimari:** `Node`, `Edge`, `Graph` sınıfları ve `IAlgorithm` arayüzü kağıt üzerinde tasarlanacak.
