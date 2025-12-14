@@ -7,11 +7,7 @@
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <StartupObject></StartupObject>
-    <ApplicationIcon>graphSNA1.ico</ApplicationIcon>
+    <ApplicationIcon>graphSNA3.ico</ApplicationIcon>
   </PropertyGroup>
-
-  <ItemGroup>
-    <Content Include="graphSNA1.ico" />
-  </ItemGroup>
 
 </Project>
