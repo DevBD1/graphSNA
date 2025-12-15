@@ -9,7 +9,7 @@ namespace graphSNA.Model
         (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal);
     }
 
-    // 1. DIJKSTRA (SADELEŞTİRİLMİŞ)
+    // 1. DIJKSTRA ALGORITHM
     public class DijkstraAlgorithm : IShortestPathAlgorithm
     {
         public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
@@ -17,7 +17,6 @@ namespace graphSNA.Model
             var distances = new Dictionary<Node, double>();
             var previous = new Dictionary<Node, Node>();
             var priorityQueue = new PriorityQueue<Node, double>();
-            // "visited" listesini kaldırdık, gerek yok.
 
             foreach (var node in graph.Nodes)
             {
@@ -30,12 +29,8 @@ namespace graphSNA.Model
             {
                 var current = priorityQueue.Dequeue();
 
-                // "visited" kontrolünü sildik.
-
                 if (current == goal)
                     return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]); // Stop if we reached the goal
-
-                // visited.Add sildik.
 
                 foreach (var neighbor in ShortestPathHelpers.GetNeighbors(graph, current))
                 {
