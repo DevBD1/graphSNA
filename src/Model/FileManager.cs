@@ -2,45 +2,36 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text; // StringBuilder için gerekli
 using System.Windows.Forms;
+using System.Drawing;
 
 namespace graphSNA.Model
 {
     public static class FileManager
     {
-        // KAYDETME İŞLEMİ (SAVE)
+        static Random rnd = new Random();
+
+        // --- KAYDETME İŞLEMİ (SAVE) ---
         public static void SaveGraphToCSV(Graph graph, string filePath)
         {
             try
             {
-                using (StreamWriter sw = new StreamWriter(filePath))
+                // Encoding.UTF8 kullanarak Türkçe karakter sorununu çözeriz
+                using (StreamWriter sw = new StreamWriter(filePath, false, Encoding.UTF8))
                 {
-                    // Başlık Satırı (Header)
-                    sw.WriteLine("Ad;Aktiflik;Etkilesim;BaglantiSayisi;X;Y;Komsular");
+                    sw.WriteLine("ID;Ad;Aktiflik;Etkilesim;Komsular");
 
                     foreach (Node node in graph.Nodes)
                     {
-                        // 1. Düğümün kendi özelliklerini al
-                        string line = $"{node.Name};{node.Activity};{node.Interaction};{node.ConnectionCount};{node.Location.X};{node.Location.Y}";
-
-                        // 2. Komşularını bul (Bu düğüme bağlı olan diğer düğümler)
-                        // Edge listesinden bu node'un kaynak (Source) olduğu bağlantıları buluyoruz.
-                        // (Yönsüz graf olduğu için hem Source hem Target kontrol edilebilir ama kayıtta tek yön yeterli olabilir,
-                        // ancak tam garanti için tüm bağlantıları tarıyoruz).
-                        List<string> neighbors = new List<string>();
-
+                        List<string> neighborIds = new List<string>();
                         foreach (var edge in graph.Edges)
                         {
-                            if (edge.Source == node) neighbors.Add(edge.Target.Name);
-                            else if (edge.Target == node) neighbors.Add(edge.Source.Name);
+                            if (edge.Source == node) neighborIds.Add(edge.Target.Id);
+                            else if (edge.Target == node) neighborIds.Add(edge.Source.Id);
                         }
-
-                        // Komşuları virgülle ayırarak ekle (Örn: "Ali;...;Veli,Ayşe")
-                        if (neighbors.Count > 0)
-                        {
-                            line += ";" + string.Join(",", neighbors);
-                        }
-
+                        string neighborString = string.Join(",", neighborIds);
+                        string line = $"{node.Id};{node.Name};{node.Activity};{node.Interaction};{neighborString}";
                         sw.WriteLine(line);
                     }
                 }
@@ -48,78 +39,130 @@ namespace graphSNA.Model
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Hata: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Hata: " + ex.Message);
             }
         }
 
-        // YÜKLEME İŞLEMİ (LOAD)
+        // --- YÜKLEME İŞLEMİ (LOAD) - "ZIRHLI VERSİYON" ---
         public static Graph LoadGraphFromCSV(string filePath)
         {
             Graph newGraph = new Graph();
-            var lines = File.ReadAllLines(filePath);
+            if (!File.Exists(filePath)) return newGraph;
 
-            // Sözlük: İsimden Node nesnesine hızlı erişim için
-            Dictionary<string, Node> nodeMap = new Dictionary<string, Node>();
+            // Hata ayıklama günlüğü (Log)
+            StringBuilder debugLog = new StringBuilder();
 
-            // Geçici hafıza: Hangi isim kiminle komşu? (Bağlantıları sonra kuracağız)
-            Dictionary<string, string[]> neighborMap = new Dictionary<string, string[]>();
-
-            // ADIM 1: Önce tüm DÜĞÜMLERİ (Nodes) oluştur
-            // (1. satır başlık olduğu için i=1'den başlıyoruz)
-            for (int i = 1; i < lines.Length; i++)
+            try
             {
-                string[] parts = lines[i].Split(';');
-                if (parts.Length < 6) continue; // Hatalı satırsa atla
+                var lines = File.ReadAllLines(filePath);
+                Dictionary<string, Node> nodeMap = new Dictionary<string, Node>();
+                Dictionary<string, List<string>> neighborMap = new Dictionary<string, List<string>>();
 
-                string name = parts[0];
-                double act = double.Parse(parts[1]);
-                double inter = double.Parse(parts[2]);
-                double conn = double.Parse(parts[3]);
-                int x = int.Parse(parts[4]);
-                int y = int.Parse(parts[5]);
-
-                Node newNode = new Node(name, act, inter, conn);
-                newNode.Location = new System.Drawing.Point(x, y);
-
-                newGraph.AddNode(newNode);
-                nodeMap[name] = newNode;
-
-                // Komşuları varsa hafızaya at (Daha sonra bağlayacağız)
-                if (parts.Length > 6 && !string.IsNullOrWhiteSpace(parts[6]))
+                // --- FAZ 1: DÜĞÜMLERİ OKU ---
+                for (int i = 1; i < lines.Length; i++)
                 {
-                    string[] neighbors = parts[6].Split(',');
-                    neighborMap[name] = neighbors;
-                }
-            }
+                    string line = lines[i];
+                    if (string.IsNullOrWhiteSpace(line)) continue;
 
-            // ADIM 2: Şimdi BAĞLANTILARI (Edges) kur
-            foreach (var kvp in neighborMap)
-            {
-                Node sourceNode = nodeMap[kvp.Key];
+                    string[] parts = line.Split(';');
+                    if (parts.Length < 4) continue;
 
-                foreach (string neighborName in kvp.Value)
-                {
-                    if (nodeMap.ContainsKey(neighborName))
+                    // 1. GİZLİ BOM KARAKTERİNİ TEMİZLE (Kritik Nokta!)
+                    string id = parts[0].Trim().Replace("\uFEFF", "").Replace("\"", "");
+
+                    string name = parts[1].Trim().Replace("\"", "");
+                    double act = double.Parse(parts[2].Trim());
+                    double inter = double.Parse(parts[3].Trim());
+
+                    Node newNode = new Node(id, name, act, inter);
+
+                    // YENİ KOD (ÇEMBER DÜZENİ):
+                    // Toplam düğüm sayısına göre açıyı hesapla
+                    double angle = (2.0 * Math.PI * (i - 1)) / (lines.Length - 1);
+
+                    // Çemberin Merkezi (Panelin ortası varsayalım: 400, 300)
+                    int centerX = 400;
+                    int centerY = 300;
+                    int radius = 200; // Çemberin genişliği
+
+                    // Trigonometri ile konumu sabitle
+                    int x = (int)(centerX + radius * Math.Cos(angle));
+                    int y = (int)(centerY + radius * Math.Sin(angle));
+
+                    newNode.Location = new System.Drawing.Point(x, y);
+
+                    // Komşuları Okuma (İndex 4)
+                    if (parts.Length > 4 && !string.IsNullOrWhiteSpace(parts[4]))
                     {
-                        Node targetNode = nodeMap[neighborName];
-
-                        // Çift taraflı eklemeyi önlemek için kontrol:
-                        // Sadece "Ali -> Veli" ekleyelim, "Veli -> Ali" zaten aynı kenardır.
-                        // Bunu sağlamak için basit bir string karşılaştırması yapabiliriz veya Graph.cs kontrol etmeli.
-                        // Şimdilik Graph.cs içinde kontrol olmadığını varsayarak doğrudan ekliyoruz,
-                        // ancak Edge constructor'ı aynı kenarın tekrar eklenmesini engellemez.
-                        // Basit çözüm: Zaten bağlılar mı kontrol et.
-
-                        bool alreadyConnected = newGraph.Edges.Any(e =>
-                            (e.Source == sourceNode && e.Target == targetNode) ||
-                            (e.Source == targetNode && e.Target == sourceNode));
-
-                        if (!alreadyConnected)
+                        string[] rawNeighbors = parts[4].Split(',');
+                        List<string> cleanNeighbors = new List<string>();
+                        foreach (var n in rawNeighbors)
                         {
-                            newGraph.AddEdge(sourceNode, targetNode);
+                            if (!string.IsNullOrWhiteSpace(n))
+                                cleanNeighbors.Add(n.Trim().Replace("\"", ""));
+                        }
+                        neighborMap[id] = cleanNeighbors;
+                        newNode.ConnectionCount = cleanNeighbors.Count;
+                    }
+
+                    newGraph.AddNode(newNode);
+
+                    if (!nodeMap.ContainsKey(id)) nodeMap.Add(id, newNode);
+                }
+
+                // --- FAZ 2: KENARLARI KUR ---
+                int edgeCount = 0;
+                foreach (var kvp in neighborMap)
+                {
+                    string sourceId = kvp.Key;
+                    if (!nodeMap.ContainsKey(sourceId))
+                    {
+                        debugLog.AppendLine($"Kaynak ID Bulunamadı: {sourceId}");
+                        continue;
+                    }
+                    Node sourceNode = nodeMap[sourceId];
+
+                    foreach (string targetId in kvp.Value)
+                    {
+                        if (nodeMap.ContainsKey(targetId))
+                        {
+                            Node targetNode = nodeMap[targetId];
+
+                            // Kenar var mı kontrolü
+                            bool exists = newGraph.Edges.Any(e =>
+                                (e.Source == sourceNode && e.Target == targetNode) ||
+                                (e.Source == targetNode && e.Target == sourceNode));
+
+                            if (!exists)
+                            {
+                                newGraph.AddEdge(sourceNode, targetNode);
+                                edgeCount++;
+                            }
+                        }
+                        else
+                        {
+                            // Hata durumunda log tut (Sadece ilk 5 hatayı göster)
+                            if (debugLog.Length < 500)
+                                debugLog.AppendLine($"Hedef ID Bulunamadı: {targetId} (Kaynak: {sourceNode.Name})");
                         }
                     }
                 }
+
+                // SONUÇ RAPORU (Eğer kenar sayısı 0 ise sebebini gösterir)
+                if (edgeCount == 0 && newGraph.Nodes.Count > 0)
+                {
+                    MessageBox.Show($"Düğümler yüklendi ama hiç kenar kurulamadı!\n\nOlası Hatalar:\n{debugLog.ToString()}",
+                                    "Veri Yükleme Uyarısı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    // Başarılıysa bilgi ver (Test aşamasında açık kalsın)
+                    // MessageBox.Show($"Başarılı!\nNode: {newGraph.Nodes.Count}\nEdge: {edgeCount}");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Dosya Okuma Hatası: " + ex.Message);
             }
 
             return newGraph;

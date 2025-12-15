@@ -129,7 +129,7 @@
             button3.Name = "button3";
             button3.Size = new Size(226, 23);
             button3.TabIndex = 2;
-            button3.Text = "Save";
+            button3.Text = "Refresh";
             button3.UseVisualStyleBackColor = true;
             // 
             // button2
