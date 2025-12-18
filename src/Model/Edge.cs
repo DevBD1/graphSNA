@@ -25,9 +25,10 @@ namespace graphSNA.Model
         /// </summary>
         public void CalculateWeight()
         {
-            // TODO: Implement the specific formula from Section 4.3
-            // For now, we assign a default value of 1.0 to test the graph structure.
-            this.Weight = 1.0;
+            float Diff_Act = Math.Abs(Source.Activity - Target.Activity);
+            float Diff_Int = Math.Abs(Source.Interaction - Target.Interaction);
+            float Diff_ConCount = Math.Abs(Source.ConnectionCount - Target.ConnectionCount);
+            this.Weight = 1 / ( 1 + Math.Sqrt( (Diff_Act * Diff_Act) + (Diff_Int * Diff_Int) + (Diff_ConCount * Diff_ConCount) ) );
         }
     }
 }
