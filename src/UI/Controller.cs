@@ -8,10 +8,12 @@ using System.Threading.Tasks;
 
 namespace graphSNA.UI
 {
-    // Bu sınıf, Form ile Veri (Graph) arasındaki köprüdür.
+    /// <summary>
+    ///  The bridge between Form and Data (Graph).
+    /// </summary>
     public class GraphController
     {
-        // Veriyi artık burada tutuyoruz, Form direkt erişemez (Kapsülleme)
+        // We store the data here, Form cannot access directly (Encapsulation)
         public Graph ActiveGraph { get; private set; }
 
         public GraphController()
@@ -20,7 +22,7 @@ namespace graphSNA.UI
         }
 
         // Yeni Düğüm Ekleme İşi
-        public void AddNode(string name, double act, double inter, double conn, Point loc)
+        public void AddNode(string name, float act, float inter, long conn, Point loc)
         {
             string randomId = Guid.NewGuid().ToString().Substring(0, 8);
 

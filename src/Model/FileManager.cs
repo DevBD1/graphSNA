@@ -71,8 +71,8 @@ namespace graphSNA.Model
                     string id = parts[0].Trim().Replace("\uFEFF", "").Replace("\"", "");
 
                     string name = parts[1].Trim().Replace("\"", "");
-                    double act = double.Parse(parts[2].Trim());
-                    double inter = double.Parse(parts[3].Trim());
+                    float act = float.Parse(parts[2].Trim());
+                    float inter = float.Parse(parts[3].Trim());
 
                     Node newNode = new Node(id, name, act, inter);
 
