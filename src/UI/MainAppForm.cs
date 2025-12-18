@@ -1,7 +1,7 @@
 ﻿using graphSNA.Model;
 using System;
-using System.Drawing; // SetStyle
-using System.Drawing.Drawing2D;
+using System.Drawing;
+using System.Drawing.Drawing2D; /// SetStyle
 using System.Windows.Forms;
 
 namespace graphSNA.UI
@@ -11,35 +11,41 @@ namespace graphSNA.UI
     /// </summary>
     public partial class MainAppForm : Form
     {
-        // global variables & constants
+        // Global variables
         GraphController controller;
         Node selectedNode = null;
+        // Constants for node radius
         private const int NodeRadius = 15;
         private const int NodeSize = 30;
 
+        /// <summary>
+        ///  <>
+        /// </summary>
         public MainAppForm()
         {
+            // Call the designer generated code (the default method by designer)
             InitializeComponent();
 
-            // Controller'ı başlat
+            // Initialize the Controller
             controller = new GraphController();
 
-            // SADECE TEK SATIR İLE TÜM BAĞLANTILARI YAP:
-            RegisterEvents(); // <-- Diğer dosyadaki metodu çağırıyoruz!
+            // Call the event registration method from MainAppForm.Events.cs
+            RegisterEvents();
 
-            // Görsel ayarlar
+            // Visual settings for smoother rendering
             SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
         }
 
-        // --- GÖRSEL VE ETKİLEŞİM ---
-
+        /// <summary>
+        ///  Visualization & Communication
+        /// </summary>
         private void GraphCanvas_Paint(object sender, PaintEventArgs e)
         {
-            // Veriyi Controller'dan istiyoruz
+            // Fetch the data (active graph) from the controller
             Graph graphToDraw = controller.ActiveGraph;
 
-            // Eğer graf yoksa veya boşsa çizme
+            // Do not draw if graf is null
             if (graphToDraw == null) return;
 
             Graphics g = e.Graphics;
@@ -100,8 +106,6 @@ namespace graphSNA.UI
             // Ekranı yenile (Renk değişimi için)
             panel1.Invalidate();
         }
-
-        // IsPointInNode metodunu buradan SİLDİK. Çünkü artık Controller yapıyor.
 
         private void ShowNodeDetails(Node node)
         {

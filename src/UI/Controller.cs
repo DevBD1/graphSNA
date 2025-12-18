@@ -39,14 +39,14 @@ namespace graphSNA.UI
         public void SaveGraph(string filePath)
         {
             // FileManager'ın public ve static olduğundan emin olun
-            FileManager.SaveGraphToCSV(ActiveGraph, filePath);
+            FileManager.SaveGraph(ActiveGraph, filePath);
         }
 
         // Dosya Yükleme İşi
         public void LoadGraph(string filePath)
         {
             // Yeni grafı yükle ve aktif graf olarak ata
-            ActiveGraph = FileManager.LoadGraphFromCSV(filePath);
+            ActiveGraph = FileManager.LoadGraph(filePath);
         }
 
         // Tıklanan noktada düğüm var mı kontrolü (Mantık işi)

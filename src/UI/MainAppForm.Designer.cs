@@ -35,6 +35,7 @@
             tabPage1 = new TabPage();
             flowLayoutPanel1 = new FlowLayoutPanel();
             groupBox1 = new GroupBox();
+            button4 = new Button();
             button3 = new Button();
             button2 = new Button();
             button1 = new Button();
@@ -113,28 +114,40 @@
             // 
             // groupBox1
             // 
+            groupBox1.Controls.Add(button4);
             groupBox1.Controls.Add(button3);
             groupBox1.Controls.Add(button2);
             groupBox1.Controls.Add(button1);
             groupBox1.Location = new Point(3, 3);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(238, 104);
+            groupBox1.Size = new Size(238, 77);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
-            groupBox1.Text = "Data Source";
+            groupBox1.Text = "<import a file>";
+            // 
+            // button4
+            // 
+            button4.BackColor = Color.Transparent;
+            button4.Location = new Point(121, 47);
+            button4.Name = "button4";
+            button4.Size = new Size(111, 23);
+            button4.TabIndex = 3;
+            button4.Text = "Weighted";
+            button4.UseVisualStyleBackColor = false;
             // 
             // button3
             // 
-            button3.Location = new Point(6, 73);
+            button3.BackColor = Color.Transparent;
+            button3.Location = new Point(6, 47);
             button3.Name = "button3";
-            button3.Size = new Size(226, 23);
+            button3.Size = new Size(111, 23);
             button3.TabIndex = 2;
-            button3.Text = "Refresh";
-            button3.UseVisualStyleBackColor = true;
+            button3.Text = "Force-Directed Layout";
+            button3.UseVisualStyleBackColor = false;
             // 
             // button2
             // 
-            button2.Location = new Point(121, 44);
+            button2.Location = new Point(121, 18);
             button2.Name = "button2";
             button2.Size = new Size(111, 23);
             button2.TabIndex = 1;
@@ -143,7 +156,7 @@
             // 
             // button1
             // 
-            button1.Location = new Point(6, 44);
+            button1.Location = new Point(6, 18);
             button1.Name = "button1";
             button1.Size = new Size(111, 23);
             button1.TabIndex = 0;
@@ -152,7 +165,7 @@
             // 
             // groupBox2
             // 
-            groupBox2.Location = new Point(3, 113);
+            groupBox2.Location = new Point(3, 86);
             groupBox2.Name = "groupBox2";
             groupBox2.Size = new Size(238, 164);
             groupBox2.TabIndex = 1;
@@ -216,5 +229,6 @@
         private GroupBox groupBox2;
         private Button button3;
         private DataGridView dataGridView1;
+        private Button button4;
     }
 }
