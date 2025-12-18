@@ -117,10 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="App_Title" xml:space="preserve">
+    <value>graphSNA - Enhanced Graph Visualization Tool </value>
+  </data>
   <data name="Err_FileNotFound" xml:space="preserve">
     <value>File not found: {0}</value>
   </data>
+  <data name="UI_Import" xml:space="preserve">
+    <value>Import</value>
+  </data>
   <data name="Msg_Success" xml:space="preserve">
     <value>Operation completed successfully.</value>
+  </data>
+  <data name="UI_Functions" xml:space="preserve">
+    <value>Functions</value>
+  </data>
+  <data name="UI_Stats" xml:space="preserve">
+    <value>Statistics</value>
+  </data>
+  <data name="UI_Export" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="UI_FileTitle" xml:space="preserve">
+    <value>Import a File</value>
   </data>
 </root>

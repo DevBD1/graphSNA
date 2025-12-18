@@ -35,6 +35,9 @@ namespace graphSNA.UI
             // Visual settings for smoother rendering
             SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
+
+            // Localization
+            UpdateUITexts();
         }
 
         /// <summary>

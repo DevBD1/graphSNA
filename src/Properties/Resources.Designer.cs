@@ -61,6 +61,15 @@ namespace graphSNA.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to graphSNA - Enhanced Graph Visualization Tool .
+        /// </summary>
+        public static string App_Title {
+            get {
+                return ResourceManager.GetString("App_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File not found: {0}.
         /// </summary>
         public static string Err_FileNotFound {
@@ -75,6 +84,51 @@ namespace graphSNA.Properties {
         public static string Msg_Success {
             get {
                 return ResourceManager.GetString("Msg_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Export.
+        /// </summary>
+        public static string UI_Export {
+            get {
+                return ResourceManager.GetString("UI_Export", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import a File.
+        /// </summary>
+        public static string UI_FileTitle {
+            get {
+                return ResourceManager.GetString("UI_FileTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Functions.
+        /// </summary>
+        public static string UI_Functions {
+            get {
+                return ResourceManager.GetString("UI_Functions", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Import.
+        /// </summary>
+        public static string UI_Import {
+            get {
+                return ResourceManager.GetString("UI_Import", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Statistics.
+        /// </summary>
+        public static string UI_Stats {
+            get {
+                return ResourceManager.GetString("UI_Stats", resourceCulture);
             }
         }
     }

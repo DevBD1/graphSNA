@@ -117,10 +117,28 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="App_Title" xml:space="preserve">
+    <value>graphSNA- Gelişmiş Graf Gorselleştirme Aracı</value>
+  </data>
   <data name="Err_FileNotFound" xml:space="preserve">
     <value>Dosya bulunamadı: {0}</value>
   </data>
+  <data name="UI_Import" xml:space="preserve">
+    <value>İce Aktar</value>
+  </data>
   <data name="Msg_Success" xml:space="preserve">
     <value>İşlem başarıyla tamamlandı.</value>
+  </data>
+  <data name="UI_Functions" xml:space="preserve">
+    <value>Fonksiyonlar</value>
+  </data>
+  <data name="UI_Stats" xml:space="preserve">
+    <value>İstatistikler</value>
+  </data>
+  <data name="UI_Export" xml:space="preserve">
+    <value>Dışa Aktar</value>
+  </data>
+  <data name="UI_FileTitle" xml:space="preserve">
+    <value>Bir Dosyayi Ice Aktar</value>
   </data>
 </root>
