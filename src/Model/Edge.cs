@@ -3,8 +3,8 @@
 namespace graphSNA.Model
 {
     /// <summary>
-    /// Represents a connection (link) between two users.
-    /// The graph is undirected and weighted.
+    ///  Represents a connection (link) between two nodes.
+    ///  The graph is undirected and weighted.
     /// </summary>
     public class Edge
     {
@@ -20,8 +20,8 @@ namespace graphSNA.Model
         }
 
         /// <summary>
-        /// Calculates the weight based on the formula provided in the project requirements.
-        /// Formula: Weight = 1 + Sqrt((Diff_Activity)^2 + (Diff_Interaction)^2 + (Diff_ConnectionCount)^2)
+        ///  Calculates the weight based on the formula.
+        ///  Formula: Weight = 1 / ( 1 + Sqrt( (Diff_Activity)^2 + (Diff_Interaction)^2 + (Diff_ConnectionCount)^2 ) )
         /// </summary>
         public void CalculateWeight()
         {
