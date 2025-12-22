@@ -105,5 +105,10 @@ namespace graphSNA.UI
 
             return traversalAlgorithm.Traverse(ActiveGraph, startNode);
         }
+        public int ColorGraph()
+        {
+            if (ActiveGraph == null) return 0;
+            return ColoringAlgorithm.ApplyWelshPowell(ActiveGraph);
+        }
     }
 }

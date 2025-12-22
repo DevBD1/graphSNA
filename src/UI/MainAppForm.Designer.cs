@@ -27,19 +27,23 @@
             button1 = new Button();
             groupBox2 = new GroupBox();
             
-            
-            labelTraversal = new Label();
-            radioBFS = new RadioButton();
-            radioDFS = new RadioButton();
-            btnTraverse = new Button();
-      
-
+            // --- TANIMLAMALAR ---
             btnFindShortestPath = new Button();
             txtCost = new TextBox();
             lblCost = new Label();
             labelSelectShortestPath = new Label();
             radioAstar = new RadioButton();
             radioDijsktra = new RadioButton();
+            
+            labelTraversal = new Label();
+            radioBFS = new RadioButton();
+            radioDFS = new RadioButton();
+            btnTraverse = new Button();
+
+            // YENİ EKLENEN BUTON
+            btnColoring = new Button(); 
+            // ------------------
+
             tabPage2 = new TabPage();
             dataGridView1 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -160,19 +164,24 @@
             // 
             // groupBox2
             // 
-            groupBox2.Controls.Add(btnTraverse); // YENİ
-            groupBox2.Controls.Add(radioDFS);    // YENİ
-            groupBox2.Controls.Add(radioBFS);    // YENİ
-            groupBox2.Controls.Add(labelTraversal); // YENİ
+            groupBox2.Controls.Add(btnTraverse); 
+            groupBox2.Controls.Add(radioDFS);    
+            groupBox2.Controls.Add(radioBFS);    
+            groupBox2.Controls.Add(labelTraversal); 
             groupBox2.Controls.Add(btnFindShortestPath);
             groupBox2.Controls.Add(txtCost);
             groupBox2.Controls.Add(lblCost);
             groupBox2.Controls.Add(labelSelectShortestPath);
             groupBox2.Controls.Add(radioAstar);
             groupBox2.Controls.Add(radioDijsktra);
+            
+            // YENİ EKLENEN KONTROL
+            groupBox2.Controls.Add(btnColoring);
+            // --------------------
+
             groupBox2.Location = new Point(3, 86);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(238, 250); // Boyut arttı
+            groupBox2.Size = new Size(238, 300); // BOYUTU ARTTIRDIM (250 -> 300)
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Analysis";
@@ -275,6 +284,15 @@
             btnTraverse.TabIndex = 9;
             btnTraverse.Text = "Run Traversal";
             btnTraverse.UseVisualStyleBackColor = true;
+            // 
+            // btnColoring
+            // 
+            btnColoring.Location = new Point(6, 250);
+            btnColoring.Name = "btnColoring";
+            btnColoring.Size = new Size(226, 35);
+            btnColoring.TabIndex = 10;
+            btnColoring.Text = "Grafı Renklendir (Welsh-Powell)";
+            btnColoring.UseVisualStyleBackColor = true;
             // -----------------------------
 
             // 
@@ -347,10 +365,13 @@
         private RadioButton radioAstar;
         private RadioButton radioDijsktra;
 
-        // NEW Traversal Controls
+        // Traversal Controls
         private Label labelTraversal;
         private RadioButton radioBFS;
         private RadioButton radioDFS;
         private Button btnTraverse;
+
+        //coloring button
+        private Button btnColoring;
     }
 }

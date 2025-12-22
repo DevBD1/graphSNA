@@ -23,12 +23,14 @@ namespace graphSNA.UI
             this.panel1.Paint += GraphCanvas_Paint;
             this.panel1.MouseClick += PnlGraph_MouseClick;
 
-            // --- YENİ EKLENENLER ---
             // Shortest Path Butonu
             this.btnFindShortestPath.Click += btnFindShortestPath_Click;
 
             // Traversal (BFS/DFS) Butonu
             this.btnTraverse.Click += btnTraverse_Click;
+
+            // YENİ: Renklendirme Butonu
+            this.btnColoring.Click += btnColoring_Click;
         }
 
         // --- 1. DOSYA İŞLEMLERİ ---
@@ -131,7 +133,7 @@ namespace graphSNA.UI
             panel1.Invalidate();
         }
 
-        // --- 3. TRAVERSAL (BFS/DFS) MANTIĞI (YENİ) ---
+        // --- 3. TRAVERSAL (BFS/DFS) MANTIĞI ---
         private void btnTraverse_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 1)
@@ -169,6 +171,24 @@ namespace graphSNA.UI
 
                 MessageBox.Show(sb.ToString(), "Tarama Sonucu");
             }
+        }
+
+        // --- 4. RENKLENDİRME (WELSH-POWELL) ---
+        private void btnColoring_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
+            {
+                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
+                return;
+            }
+
+            // Controller üzerinden algoritmayı çağır
+            int colorCount = controller.ColorGraph();
+
+            // Grafı yeniden çiz (renkleri güncellemek için)
+            panel1.Invalidate();
+
+            MessageBox.Show($"Graf başarıyla boyandı!\nKullanılan renk sayısı: {colorCount}", "İşlem Tamamlandı");
         }
     }
 }
