@@ -2,33 +2,36 @@
 using System.Windows.Forms;
 using System.IO;
 using graphSNA.Model;
-using graphSNA.Properties;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace graphSNA.UI
 {
     /// <summary>
-    ///  Represents the main application UI form.
+    ///  Handles Event Wiring and Button Click Logic
     /// </summary>
     public partial class MainAppForm
     {
-        /// <summary>
-        ///  The method that connects buttons&panels to their event handlers
-        /// </summary>
         private void RegisterEvents()
         {
+            // Dosya İşlemleri
             this.button1.Click += ImportCSV;
             this.button2.Click += ExportCSV;
-            //this.button3.Click += RefreshCanvas;
-            //this.button4.Click += RefreshDefaultLayout;
+
+            // Mouse ve Çizim
             this.panel1.Paint += GraphCanvas_Paint;
             this.panel1.MouseClick += PnlGraph_MouseClick;
-            
-            // Shortest Path button
+
+            // --- YENİ EKLENENLER ---
+            // Shortest Path Butonu
             this.btnFindShortestPath.Click += btnFindShortestPath_Click;
+
+            // Traversal (BFS/DFS) Butonu
+            this.btnTraverse.Click += btnTraverse_Click;
         }
-        /// <summary>
-        ///  Method for importing the graph from a CSV file
-        /// </summary>
+
+        // --- 1. DOSYA İŞLEMLERİ ---
         private void ImportCSV(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
@@ -38,31 +41,17 @@ namespace graphSNA.UI
                 try
                 {
                     controller.LoadGraph(ofd.FileName);
-
-                    // show short name in the label inside groupBox1
-                    //labelActiveFile.Text = Path.GetFileName(ofd.FileName);
-
-                    // optionally show full path in the group box caption or a tooltip
-                    groupBox1.Text = $"Active file: {Path.GetFileName(ofd.FileName)}";
-                    // if you add a ToolTip component
-                    // toolTip1.SetToolTip(labelActiveFile, ofd.FileName); 
-
+                    groupBox1.Text = $"Aktif Dosya: {Path.GetFileName(ofd.FileName)}";
                     panel1.Invalidate();
-                    /// debug
-                    var graph = controller.ActiveGraph;
-                    MessageBox.Show($"Yüklenen Düğüm Sayısı: {graph.Nodes.Count}\nYüklenen Kenar (Bağlantı) Sayısı: {graph.Edges.Count}",
-                                "Teşhis Raporu");
                     MessageBox.Show(Properties.Resources.Msg_Success);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Bir hata oluştu: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
-        /// <summary>
-        ///  Method for exporting the graph to a CSV file
-        /// </summary>
+
         private void ExportCSV(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog();
@@ -70,29 +59,116 @@ namespace graphSNA.UI
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 controller.SaveGraph(sfd.FileName);
-                MessageBox.Show("Kayıt Başarılı.");
+                MessageBox.Show("Dosya kaydedildi.");
             }
         }
-        ///// <summary>
-        /////  Method for applying the force-directed layout algorithm
-        ///// </summary>
-        //private void RefreshCanvas(object sender, EventArgs e)
-        //{
-        //    controller.ApplyForceLayout(panel1.Width, panel1.Height);
-        //    // re-draw the panel with new locations
-        //    panel1.Invalidate();
-        //}
-        ///// <summary>
-        /////  Method for applying the node-and-edge weighted layout algorithm (the default draw).
-        /////  This delegates to the controller's weighted/default layout implementation and requests a redraw.
-        ///// </summary>
-        //private void RefreshDefaultLayout(object sender, EventArgs e)
-        //{
-        //    // Controller should provide an ApplyWeightedLayout or ApplyDefaultLayout method.
-        //    // If it doesn't exist yet, add it there following the same pattern as ApplyForceLayout.
-        //    controller.ApplyWeightedLayout(panel1.Width, panel1.Height);
-        //    // re-draw the panel with new locations
-        //    panel1.Invalidate();
-        //}
+
+        // --- 2. EN KISA YOL (SHORTEST PATH) MANTIĞI ---
+        private void btnFindShortestPath_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 2)
+            {
+                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
+                return;
+            }
+
+            // Modu Aç
+            isSelectingNodesForPathFinding = true;
+            isSelectingForTraversal = false; // Diğer modları kapat
+            startNodeForPathFinding = null;
+            endNodeForPathFinding = null;
+
+            MessageBox.Show("Lütfen haritadan BAŞLANGIÇ düğümüne tıklayın.", "Adım 1");
+        }
+
+        private void HandleShortestPathSelection(Node clickedNode)
+        {
+            if (startNodeForPathFinding == null)
+            {
+                if (clickedNode != null)
+                {
+                    startNodeForPathFinding = clickedNode;
+                    selectedNode = clickedNode;
+                    MessageBox.Show($"Başlangıç: {clickedNode.Name}\nŞimdi HEDEF düğüme tıklayın.", "Adım 2");
+                }
+            }
+            else if (endNodeForPathFinding == null)
+            {
+                if (clickedNode != null && clickedNode != startNodeForPathFinding)
+                {
+                    endNodeForPathFinding = clickedNode;
+                    isSelectingNodesForPathFinding = false;
+                    RunShortestPathAlgorithm();
+                }
+                else if (clickedNode == startNodeForPathFinding)
+                {
+                    MessageBox.Show("Başlangıç ve Bitiş aynı olamaz!", "Hata");
+                }
+            }
+            panel1.Invalidate();
+        }
+
+        private void RunShortestPathAlgorithm()
+        {
+            string algoType = radioAstar.Checked ? "A*" : "Dijkstra";
+            var result = controller.CalculateShortestPath(startNodeForPathFinding, endNodeForPathFinding, algoType);
+
+            if (result.path.Count > 0)
+            {
+                string pathStr = string.Join(" -> ", result.path.Select(n => n.Name));
+                txtCost.Text = $"{result.cost:F2}";
+                MessageBox.Show($"Yol: {pathStr}\nMaliyet: {result.cost:F2}", "Sonuç");
+            }
+            else
+            {
+                txtCost.Text = "Yok";
+                MessageBox.Show("Yol bulunamadı.", "Sonuç");
+            }
+
+            // Renkleri temizlemek istersen burayı aç:
+            // startNodeForPathFinding = null;
+            // endNodeForPathFinding = null;
+            panel1.Invalidate();
+        }
+
+        // --- 3. TRAVERSAL (BFS/DFS) MANTIĞI (YENİ) ---
+        private void btnTraverse_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 1)
+            {
+                MessageBox.Show("Lütfen bir graf yükleyin.");
+                return;
+            }
+
+            // Modu Aç
+            isSelectingForTraversal = true;
+            isSelectingNodesForPathFinding = false;
+
+            MessageBox.Show("Taramayı başlatmak için bir BAŞLANGIÇ düğümüne tıklayın.", "Traversal Modu");
+        }
+
+        private void RunTraversalAlgorithm(Node startNode)
+        {
+            string algo = radioDFS.Checked ? "DFS" : "BFS";
+
+            // Controller'ı Çağır
+            List<Node> resultOrder = controller.TraverseGraph(startNode, algo);
+
+            // Sonucu Göster
+            if (resultOrder.Count > 0)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine($"Algoritma: {algo}");
+                sb.AppendLine($"Başlangıç: {startNode.Name}");
+                sb.AppendLine($"Ziyaret Edilen: {resultOrder.Count} düğüm");
+                sb.AppendLine("--------------------------------");
+
+                // Format: Ali -> Veli -> Ayşe ...
+                string flow = string.Join(" -> ", resultOrder.Select(n => n.Name));
+                sb.AppendLine(flow);
+
+                MessageBox.Show(sb.ToString(), "Tarama Sonucu");
+            }
+        }
     }
 }

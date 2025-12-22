@@ -26,6 +26,14 @@
             button2 = new Button();
             button1 = new Button();
             groupBox2 = new GroupBox();
+            
+            
+            labelTraversal = new Label();
+            radioBFS = new RadioButton();
+            radioDFS = new RadioButton();
+            btnTraverse = new Button();
+      
+
             btnFindShortestPath = new Button();
             txtCost = new TextBox();
             lblCost = new Label();
@@ -152,6 +160,10 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(btnTraverse); // YENİ
+            groupBox2.Controls.Add(radioDFS);    // YENİ
+            groupBox2.Controls.Add(radioBFS);    // YENİ
+            groupBox2.Controls.Add(labelTraversal); // YENİ
             groupBox2.Controls.Add(btnFindShortestPath);
             groupBox2.Controls.Add(txtCost);
             groupBox2.Controls.Add(lblCost);
@@ -160,36 +172,10 @@
             groupBox2.Controls.Add(radioDijsktra);
             groupBox2.Location = new Point(3, 86);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(238, 164);
+            groupBox2.Size = new Size(238, 250); // Boyut arttı
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Analysis";
-            // 
-            // btnFindShortestPath
-            // 
-            btnFindShortestPath.Location = new Point(6, 126);
-            btnFindShortestPath.Name = "btnFindShortestPath";
-            btnFindShortestPath.Size = new Size(226, 32);
-            btnFindShortestPath.TabIndex = 5;
-            btnFindShortestPath.Text = "Find Shortest Path";
-            btnFindShortestPath.UseVisualStyleBackColor = true;
-            // 
-            // txtCost
-            // 
-            txtCost.Location = new Point(47, 97);
-            txtCost.Name = "txtCost";
-            txtCost.ReadOnly = true;
-            txtCost.Size = new Size(185, 23);
-            txtCost.TabIndex = 4;
-            // 
-            // lblCost
-            // 
-            lblCost.AutoSize = true;
-            lblCost.Location = new Point(6, 100);
-            lblCost.Name = "lblCost";
-            lblCost.Size = new Size(34, 15);
-            lblCost.TabIndex = 3;
-            lblCost.Text = "Cost:";
             // 
             // labelSelectShortestPath
             // 
@@ -198,17 +184,7 @@
             labelSelectShortestPath.Name = "labelSelectShortestPath";
             labelSelectShortestPath.Size = new Size(94, 15);
             labelSelectShortestPath.TabIndex = 2;
-            labelSelectShortestPath.Text = "Select Algorithm";
-            // 
-            // radioAstar
-            // 
-            radioAstar.AutoSize = true;
-            radioAstar.Location = new Point(6, 62);
-            radioAstar.Name = "radioAstar";
-            radioAstar.Size = new Size(39, 19);
-            radioAstar.TabIndex = 1;
-            radioAstar.Text = "A*";
-            radioAstar.UseVisualStyleBackColor = true;
+            labelSelectShortestPath.Text = "Shortest Path:";
             // 
             // radioDijsktra
             // 
@@ -221,6 +197,86 @@
             radioDijsktra.TabStop = true;
             radioDijsktra.Text = "Dijkstra";
             radioDijsktra.UseVisualStyleBackColor = true;
+            // 
+            // radioAstar
+            // 
+            radioAstar.AutoSize = true;
+            radioAstar.Location = new Point(6, 62);
+            radioAstar.Name = "radioAstar";
+            radioAstar.Size = new Size(39, 19);
+            radioAstar.TabIndex = 1;
+            radioAstar.Text = "A*";
+            radioAstar.UseVisualStyleBackColor = true;
+            // 
+            // lblCost
+            // 
+            lblCost.AutoSize = true;
+            lblCost.Location = new Point(6, 100);
+            lblCost.Name = "lblCost";
+            lblCost.Size = new Size(34, 15);
+            lblCost.TabIndex = 3;
+            lblCost.Text = "Cost:";
+            // 
+            // txtCost
+            // 
+            txtCost.Location = new Point(47, 97);
+            txtCost.Name = "txtCost";
+            txtCost.ReadOnly = true;
+            txtCost.Size = new Size(185, 23);
+            txtCost.TabIndex = 4;
+            // 
+            // btnFindShortestPath
+            // 
+            btnFindShortestPath.Location = new Point(6, 126);
+            btnFindShortestPath.Name = "btnFindShortestPath";
+            btnFindShortestPath.Size = new Size(226, 30);
+            btnFindShortestPath.TabIndex = 5;
+            btnFindShortestPath.Text = "Find Shortest Path";
+            btnFindShortestPath.UseVisualStyleBackColor = true;
+            
+            // --- BFS / DFS KONTROLLERİ ---
+            // 
+            // labelTraversal
+            // 
+            labelTraversal.AutoSize = true;
+            labelTraversal.Location = new Point(6, 165);
+            labelTraversal.Name = "labelTraversal";
+            labelTraversal.Size = new Size(100, 15);
+            labelTraversal.TabIndex = 6;
+            labelTraversal.Text = "Graph Traversal:";
+            // 
+            // radioBFS
+            // 
+            radioBFS.AutoSize = true;
+            radioBFS.Checked = true;
+            radioBFS.Location = new Point(6, 185);
+            radioBFS.Name = "radioBFS";
+            radioBFS.Size = new Size(44, 19);
+            radioBFS.TabIndex = 7;
+            radioBFS.TabStop = true;
+            radioBFS.Text = "BFS";
+            radioBFS.UseVisualStyleBackColor = true;
+            // 
+            // radioDFS
+            // 
+            radioDFS.AutoSize = true;
+            radioDFS.Location = new Point(6, 210);
+            radioDFS.Name = "radioDFS";
+            radioDFS.Size = new Size(45, 19);
+            radioDFS.TabIndex = 8;
+            radioDFS.Text = "DFS";
+            radioDFS.UseVisualStyleBackColor = true;
+            // 
+            // btnTraverse
+            // 
+            btnTraverse.Location = new Point(121, 185);
+            btnTraverse.Name = "btnTraverse";
+            btnTraverse.Size = new Size(111, 44);
+            btnTraverse.TabIndex = 9;
+            btnTraverse.Text = "Run Traversal";
+            btnTraverse.UseVisualStyleBackColor = true;
+            // -----------------------------
+
             // 
             // tabPage2
             // 
@@ -282,11 +338,19 @@
         private Button button3;
         private DataGridView dataGridView1;
         private Button button4;
+        
+        // Shortest Path Controls
         private Button btnFindShortestPath;
         private TextBox txtCost;
         private Label lblCost;
         private Label labelSelectShortestPath;
         private RadioButton radioAstar;
         private RadioButton radioDijsktra;
+
+        // NEW Traversal Controls
+        private Label labelTraversal;
+        private RadioButton radioBFS;
+        private RadioButton radioDFS;
+        private Button btnTraverse;
     }
-}   
+}
