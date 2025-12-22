@@ -22,6 +22,9 @@ namespace graphSNA.UI
             //this.button4.Click += RefreshDefaultLayout;
             this.panel1.Paint += GraphCanvas_Paint;
             this.panel1.MouseClick += PnlGraph_MouseClick;
+            
+            // Shortest Path button
+            this.btnFindShortestPath.Click += btnFindShortestPath_Click;
         }
         /// <summary>
         ///  Method for importing the graph from a CSV file
