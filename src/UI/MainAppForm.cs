@@ -6,25 +6,23 @@ using System.Windows.Forms;
 
 namespace graphSNA.UI
 {
-    /// <summary>
-    ///  Represents the main application UI form.
-    ///  (Core Logic: Variables, Constructor, Paint, MouseClick)
-    /// </summary>
+    // Represents the main application UI form.
+    // Core Logic: Variables, Constructor, Paint, MouseClick
     public partial class MainAppForm : Form
     {
-        // --- GLOBAL DEĞİŞKENLER ---
+        // Global Variables
         GraphController controller;
         Node selectedNode = null;
 
-        // Pathfinding Seçim Değişkenleri
+        // Pathfinding selection variables
         Node startNodeForPathFinding = null;
         Node endNodeForPathFinding = null;
         bool isSelectingNodesForPathFinding = false;
 
-        // Traversal (BFS/DFS) Seçim Değişkenleri (YENİ)
+        // Traversal selection variables
         bool isSelectingForTraversal = false;
 
-        // Görsel Ayarlar
+        // Visual settings
         private const int NodeRadius = 15;
         private const int NodeSize = 30;
 
@@ -33,17 +31,17 @@ namespace graphSNA.UI
             InitializeComponent();
             controller = new GraphController();
 
-            // Burak'ın yapısındaki Events dosyasına gider
+            // Wires up events defined in MainAppForm.Events.cs
             RegisterEvents();
 
             SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
 
-            // Burak'ın yapısındaki Localization dosyasına gider
+            // Updates UI texts based on localization settings
             UpdateUITexts();
         }
 
-        // --- ÇİZİM İŞLEMLERİ (PAINT) ---
+        // Handles the painting of the graph nodes and edges
         private void GraphCanvas_Paint(object sender, PaintEventArgs e)
         {
             Graph graphToDraw = controller.ActiveGraph;
@@ -52,7 +50,7 @@ namespace graphSNA.UI
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 1. Kenarları Çiz
+            // 1. Draw Edges
             using (Pen edgePen = new Pen(Color.WhiteSmoke, 2))
             {
                 foreach (Edge edge in graphToDraw.Edges)
@@ -63,48 +61,56 @@ namespace graphSNA.UI
                 }
             }
 
-            // 2. Düğümleri Çiz
+            // 2. Draw Nodes
             Font font = new Font("Arial", 10, FontStyle.Bold);
 
             foreach (Node node in graphToDraw.Nodes)
             {
-                Brush fillBrush = Brushes.LightBlue;
+                // --- COLOR SELECTION LOGIC (THE FIX) ---
+                // Default: Use the node's own color (assigned by Welsh-Powell or default)
+                Color finalColor = node.Color;
                 Pen borderPen = Pens.Black;
 
-                // --- BOYAMA MANTIĞI ---
-                if (node == startNodeForPathFinding) // Yol Başlangıcı (Yeşil)
+                // Override color for specific interaction states
+                if (node == startNodeForPathFinding) // Start Node (Green)
                 {
-                    fillBrush = Brushes.LightGreen;
+                    finalColor = Color.LightGreen;
                     borderPen = new Pen(Color.DarkGreen, 3);
                 }
-                else if (node == endNodeForPathFinding) // Yol Bitişi (Kırmızı)
+                else if (node == endNodeForPathFinding) // End Node (Red)
                 {
-                    fillBrush = Brushes.LightCoral;
+                    finalColor = Color.LightCoral;
                     borderPen = new Pen(Color.DarkRed, 3);
                 }
-                else if (node == selectedNode) // Normal Seçim (Sarı)
+                else if (node == selectedNode) // Selected Node (Yellow)
                 {
-                    fillBrush = Brushes.Yellow;
+                    finalColor = Color.Yellow;
                     borderPen = new Pen(Color.Red, 3);
                 }
 
-                g.FillEllipse(fillBrush, node.Location.X, node.Location.Y, NodeSize, NodeSize);
+                // --- DRAWING ---
+                // Create a brush with the dynamic 'finalColor'
+                using (Brush fillBrush = new SolidBrush(finalColor))
+                {
+                    g.FillEllipse(fillBrush, node.Location.X, node.Location.Y, NodeSize, NodeSize);
+                }
+
                 g.DrawEllipse(borderPen, node.Location.X, node.Location.Y, NodeSize, NodeSize);
                 g.DrawString(node.Name, font, Brushes.Black, node.Location.X, node.Location.Y - 20);
             }
         }
 
-        // --- MOUSE TIKLAMA MANTIĞI ---
+        // Handles mouse clicks on the graph panel
         private void PnlGraph_MouseClick(object sender, MouseEventArgs e)
         {
             Node clickedNode = controller.FindNodeAtPoint(e.Location, NodeRadius);
 
-            // SENARYO 1: En Kısa Yol Seçimi
+            // Scenario 1: Pathfinding Selection
             if (isSelectingNodesForPathFinding)
             {
                 HandleShortestPathSelection(clickedNode);
             }
-            // SENARYO 2: BFS/DFS Tarama Seçimi (YENİ)
+            // Scenario 2: Traversal Selection (BFS/DFS)
             else if (isSelectingForTraversal)
             {
                 if (clickedNode != null)
@@ -112,13 +118,13 @@ namespace graphSNA.UI
                     selectedNode = clickedNode;
                     panel1.Invalidate();
 
-                    // Algoritmayı Çalıştır (Events dosyasındaki metoda gidecek)
+                    // Execute Algorithm (Defined in Events.cs)
                     RunTraversalAlgorithm(clickedNode);
 
-                    isSelectingForTraversal = false; // Modu kapat
+                    isSelectingForTraversal = false;
                 }
             }
-            // SENARYO 3: Normal Seçim
+            // Scenario 3: Normal Selection
             else
             {
                 if (clickedNode != null)
@@ -135,10 +141,10 @@ namespace graphSNA.UI
             }
         }
 
-        // Helper: Node Detay Gösterimi
+        // Helper: Display node details
         private void ShowNodeDetails(Node node)
         {
-            MessageBox.Show($"Ad: {node.Name}\nAktiflik: {node.Activity}\nEtkileşim: {node.Interaction}", "Düğüm Detayı");
+            MessageBox.Show($"Name: {node.Name}\nActivity: {node.Activity}\nInteraction: {node.Interaction}", "Node Details");
         }
         private void ClearNodeDetails() { }
     }
