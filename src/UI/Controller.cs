@@ -72,5 +72,22 @@ namespace graphSNA.UI
             // 100 iterasyon boyunca hesapla ve en son halini kaydet
             layout.CalculateLayout(ActiveGraph, width, height, 100);
         }
+
+        // Shortest Path
+        public (List<Node> path, double cost) CalculateShortestPath(Node start, Node end, string algorithmType)
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count < 2)
+                return (new List<Node>(), 0);
+
+            IShortestPathAlgorithm algorithm;
+
+            if (algorithmType == "A*")
+                algorithm = new AStarAlgorithm();
+            else
+                algorithm = new DijkstraAlgorithm(); // Varsayılan
+
+            ShortestPathManager manager = new ShortestPathManager(algorithm);
+            return manager.Calculate(ActiveGraph, start, end);
+        }
     }
 }
