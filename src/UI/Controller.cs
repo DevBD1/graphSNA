@@ -89,5 +89,21 @@ namespace graphSNA.UI
             ShortestPathManager manager = new ShortestPathManager(algorithm);
             return manager.Calculate(ActiveGraph, start, end);
         }
+        // Graph Traversal Logic (Polymorphism applied here)
+        public List<Node> TraverseGraph(Node startNode, string algorithmType)
+        {
+            if (ActiveGraph == null || startNode == null)
+                return new List<Node>();
+
+            IGraphTraversal traversalAlgorithm;
+
+            // Select algorithm dynamically
+            if (algorithmType == "DFS")
+                traversalAlgorithm = new DFS();
+            else
+                traversalAlgorithm = new BFS(); // Default
+
+            return traversalAlgorithm.Traverse(ActiveGraph, startNode);
+        }
     }
 }
