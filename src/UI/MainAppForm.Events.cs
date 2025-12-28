@@ -42,6 +42,9 @@ namespace graphSNA.UI
                 {
                     controller.LoadGraph(ofd.FileName);
                     groupBox1.Text = $"File: {Path.GetFileName(ofd.FileName)}";
+                    //Distributes nodes across the screen randomly and uniformly
+                    controller.ApplyForceLayout(panel1.Width, panel1.Height);
+
                     panel1.Invalidate();
                     MessageBox.Show(Properties.Resources.Msg_Success);
                 }

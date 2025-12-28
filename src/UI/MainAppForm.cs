@@ -1,8 +1,9 @@
-﻿using graphSNA.Model;
-using System;
+﻿using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
+using System.Reflection; // for prevent a flicker(vibration) issue
+using graphSNA.Model;
 
 namespace graphSNA.UI
 {
@@ -23,17 +24,21 @@ namespace graphSNA.UI
         bool isSelectingForTraversal = false;
 
         // Visual settings
-        private const int NodeRadius = 15;
-        private const int NodeSize = 30;
+        private const int NodeRadius = 8;
+        private const int NodeSize = 16;
 
         public MainAppForm()
         {
             InitializeComponent();
+            
+            // --- FLICKER FIX ---
+            typeof(Panel).InvokeMember("DoubleBuffered", 
+                BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic, 
+                null, panel1, new object[] { true });
             controller = new GraphController();
 
             // Wires up events defined in MainAppForm.Events.cs
             RegisterEvents();
-
             SetStyle(ControlStyles.DoubleBuffer | ControlStyles.UserPaint | ControlStyles.AllPaintingInWmPaint, true);
             UpdateStyles();
 
@@ -51,7 +56,7 @@ namespace graphSNA.UI
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 1. Draw Edges
-            using (Pen edgePen = new Pen(Color.WhiteSmoke, 2))
+            using (Pen edgePen = new Pen(Color.FromArgb(200, 220, 220, 220), 1)) 
             {
                 foreach (Edge edge in graphToDraw.Edges)
                 {
@@ -62,12 +67,11 @@ namespace graphSNA.UI
             }
 
             // 2. Draw Nodes
-            Font font = new Font("Arial", 10, FontStyle.Bold);
+           Font font = new Font("Arial", 8, FontStyle.Regular);
 
             foreach (Node node in graphToDraw.Nodes)
             {
-                // --- COLOR SELECTION LOGIC (THE FIX) ---
-                // Default: Use the node's own color (assigned by Welsh-Powell or default)
+                // --- COLOR SELECTION LOGIC ---
                 Color finalColor = node.Color;
                 Pen borderPen = Pens.Black;
 
@@ -75,28 +79,28 @@ namespace graphSNA.UI
                 if (node == startNodeForPathFinding) // Start Node (Green)
                 {
                     finalColor = Color.LightGreen;
-                    borderPen = new Pen(Color.DarkGreen, 3);
+                    borderPen = new Pen(Color.DarkGreen, 2);
                 }
                 else if (node == endNodeForPathFinding) // End Node (Red)
                 {
                     finalColor = Color.LightCoral;
-                    borderPen = new Pen(Color.DarkRed, 3);
+                    borderPen = new Pen(Color.DarkRed, 2);
                 }
                 else if (node == selectedNode) // Selected Node (Yellow)
                 {
                     finalColor = Color.Yellow;
-                    borderPen = new Pen(Color.Red, 3);
+                    borderPen = new Pen(Color.Red, 2);
                 }
 
                 // --- DRAWING ---
-                // Create a brush with the dynamic 'finalColor'
                 using (Brush fillBrush = new SolidBrush(finalColor))
                 {
                     g.FillEllipse(fillBrush, node.Location.X, node.Location.Y, NodeSize, NodeSize);
                 }
 
                 g.DrawEllipse(borderPen, node.Location.X, node.Location.Y, NodeSize, NodeSize);
-                g.DrawString(node.Name, font, Brushes.Black, node.Location.X, node.Location.Y - 20);
+                
+                g.DrawString(node.Name, font, Brushes.Black, node.Location.X - 5, node.Location.Y - 15);
             }
         }
 
@@ -137,7 +141,7 @@ namespace graphSNA.UI
                     selectedNode = null;
                     ClearNodeDetails();
                 }
-                panel1.Invalidate();
+                panel1.Invalidate(); // Paint only when the selection changes.
             }
         }
 
@@ -146,6 +150,7 @@ namespace graphSNA.UI
         {
             MessageBox.Show($"Name: {node.Name}\nActivity: {node.Activity}\nInteraction: {node.Interaction}", "Node Details");
         }
+        
         private void ClearNodeDetails() { }
     }
 }
