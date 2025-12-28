@@ -8,7 +8,7 @@ namespace graphSNA.UI
 {
     public partial class MainAppForm
     {
-        // Dil değiştiğinde veya program açıldığında burayı çağırın
+        // Localization method to update UI texts.
         private void UpdateUITexts()
         {
             this.Text = Properties.Resources.App_Title;
