@@ -15,72 +15,68 @@ namespace graphSNA.UI
     {
         private void RegisterEvents()
         {
-            // Dosya İşlemleri
+            // Standard IO Operations
             this.button1.Click += ImportCSV;
             this.button2.Click += ExportCSV;
 
-            // Mouse ve Çizim
+            // Canvas interactions
             this.panel1.Paint += GraphCanvas_Paint;
             this.panel1.MouseClick += PnlGraph_MouseClick;
 
-            // Shortest Path Butonu
+            // Algorithm triggers
             this.btnFindShortestPath.Click += btnFindShortestPath_Click;
-
-            // Traversal (BFS/DFS) Butonu
             this.btnTraverse.Click += btnTraverse_Click;
-
-            // YENİ: Renklendirme Butonu
             this.btnColoring.Click += btnColoring_Click;
+
+            // Tab Page Change Event (For updating Statistics)
+            this.tabControl1.SelectedIndexChanged += TabControl1_SelectedIndexChanged;
         }
 
-        // --- 1. DOSYA İŞLEMLERİ ---
+        // --- 1. FILE OPERATIONS ---
         private void ImportCSV(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "CSV Dosyası|*.csv";
+            OpenFileDialog ofd = new OpenFileDialog { Filter = "CSV Files|*.csv" };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
                     controller.LoadGraph(ofd.FileName);
-                    groupBox1.Text = $"Aktif Dosya: {Path.GetFileName(ofd.FileName)}";
+                    groupBox1.Text = $"File: {Path.GetFileName(ofd.FileName)}";
                     panel1.Invalidate();
                     MessageBox.Show(Properties.Resources.Msg_Success);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
         private void ExportCSV(object sender, EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog();
-            sfd.Filter = "CSV Dosyası|*.csv";
+            SaveFileDialog sfd = new SaveFileDialog { Filter = "CSV Files|*.csv" };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 controller.SaveGraph(sfd.FileName);
-                MessageBox.Show("Dosya kaydedildi.");
+                MessageBox.Show("File saved successfully.");
             }
         }
 
-        // --- 2. EN KISA YOL (SHORTEST PATH) MANTIĞI ---
+        // --- 2. SHORTEST PATH LOGIC ---
         private void btnFindShortestPath_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 2)
             {
-                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
+                MessageBox.Show("Please load a graph first.", "Warning");
                 return;
             }
 
-            // Modu Aç
             isSelectingNodesForPathFinding = true;
-            isSelectingForTraversal = false; // Diğer modları kapat
+            isSelectingForTraversal = false;
             startNodeForPathFinding = null;
             endNodeForPathFinding = null;
 
-            MessageBox.Show("Lütfen haritadan BAŞLANGIÇ düğümüne tıklayın.", "Adım 1");
+            MessageBox.Show("Please select the START node from the graph.", "Step 1");
         }
 
         private void HandleShortestPathSelection(Node clickedNode)
@@ -91,7 +87,7 @@ namespace graphSNA.UI
                 {
                     startNodeForPathFinding = clickedNode;
                     selectedNode = clickedNode;
-                    MessageBox.Show($"Başlangıç: {clickedNode.Name}\nŞimdi HEDEF düğüme tıklayın.", "Adım 2");
+                    MessageBox.Show($"Start: {clickedNode.Name}\nNow select the TARGET node.", "Step 2");
                 }
             }
             else if (endNodeForPathFinding == null)
@@ -104,7 +100,7 @@ namespace graphSNA.UI
                 }
                 else if (clickedNode == startNodeForPathFinding)
                 {
-                    MessageBox.Show("Başlangıç ve Bitiş aynı olamaz!", "Hata");
+                    MessageBox.Show("Start and End nodes cannot be the same!", "Error");
                 }
             }
             panel1.Invalidate();
@@ -119,76 +115,98 @@ namespace graphSNA.UI
             {
                 string pathStr = string.Join(" -> ", result.path.Select(n => n.Name));
                 txtCost.Text = $"{result.cost:F2}";
-                MessageBox.Show($"Yol: {pathStr}\nMaliyet: {result.cost:F2}", "Sonuç");
+                MessageBox.Show($"Path: {pathStr}\nCost: {result.cost:F2}", "Result");
             }
             else
             {
-                txtCost.Text = "Yok";
-                MessageBox.Show("Yol bulunamadı.", "Sonuç");
+                txtCost.Text = "None";
+                MessageBox.Show("No path found.", "Result");
             }
-
-            // Renkleri temizlemek istersen burayı aç:
-            // startNodeForPathFinding = null;
-            // endNodeForPathFinding = null;
             panel1.Invalidate();
         }
 
-        // --- 3. TRAVERSAL (BFS/DFS) MANTIĞI ---
+        // --- 3. TRAVERSAL (BFS/DFS) LOGIC ---
         private void btnTraverse_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 1)
             {
-                MessageBox.Show("Lütfen bir graf yükleyin.");
+                MessageBox.Show("Please load a graph first.");
                 return;
             }
 
-            // Modu Aç
             isSelectingForTraversal = true;
             isSelectingNodesForPathFinding = false;
 
-            MessageBox.Show("Taramayı başlatmak için bir BAŞLANGIÇ düğümüne tıklayın.", "Traversal Modu");
+            MessageBox.Show("Click on a START node to begin traversal.", "Traversal Mode");
         }
 
         private void RunTraversalAlgorithm(Node startNode)
         {
             string algo = radioDFS.Checked ? "DFS" : "BFS";
-
-            // Controller'ı Çağır
             List<Node> resultOrder = controller.TraverseGraph(startNode, algo);
 
-            // Sonucu Göster
             if (resultOrder.Count > 0)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Algoritma: {algo}");
-                sb.AppendLine($"Başlangıç: {startNode.Name}");
-                sb.AppendLine($"Ziyaret Edilen: {resultOrder.Count} düğüm");
+                sb.AppendLine($"Algorithm: {algo}");
+                sb.AppendLine($"Start Node: {startNode.Name}");
+                sb.AppendLine($"Visited: {resultOrder.Count} nodes");
                 sb.AppendLine("--------------------------------");
-
-                // Format: Ali -> Veli -> Ayşe ...
                 string flow = string.Join(" -> ", resultOrder.Select(n => n.Name));
                 sb.AppendLine(flow);
-
-                MessageBox.Show(sb.ToString(), "Tarama Sonucu");
+                MessageBox.Show(sb.ToString(), "Traversal Result");
             }
         }
 
-        // --- 4. RENKLENDİRME (WELSH-POWELL) ---
+        // --- 4. WELSH-POWELL COLORING ---
         private void btnColoring_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
             {
-                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
+                MessageBox.Show("Please load a graph first.", "Warning");
                 return;
             }
 
-            // Controller üzerinden algoritmayı çağır
             int colorCount = controller.ColorGraph();
-
-            // Grafı yeniden çiz (renkleri güncellemek için)
             panel1.Invalidate();
 
-            MessageBox.Show($"Graf başarıyla boyandı!\nKullanılan renk sayısı: {colorCount}", "İşlem Tamamlandı");
+            MessageBox.Show($"Graph colored successfully!\nChromatic Number: {colorCount}", "Completed");
+        }
+
+        // --- 5. STATISTICS (DEGREE CENTRALITY) ---
+        private void TabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // Update table only when 'Stats' tab is active
+            if (tabControl1.SelectedIndex == 1)
+            {
+                UpdateStatsTable();
+            }
+        }
+
+        private void UpdateStatsTable()
+        {
+            if (controller.ActiveGraph == null) return;
+
+            var topNodes = controller.GetTopInfluencers(5);
+
+            dataGridView1.DataSource = null;
+            dataGridView1.Rows.Clear();
+            dataGridView1.Columns.Clear();
+
+            // Columns
+            dataGridView1.Columns.Add("Rank", "Sıra");
+            dataGridView1.Columns.Add("Name", "İsim");
+            dataGridView1.Columns.Add("Degree", "Derece");
+            dataGridView1.Columns.Add("Score", "Merkezilik Skoru");
+
+            int rank = 1;
+            foreach (var node in topNodes)
+            {
+                double score = node.ConnectionCount * node.Interaction;
+                dataGridView1.Rows.Add(rank++, node.Name, node.ConnectionCount, score.ToString("F2"));
+            }
+
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
     }
 }

@@ -110,5 +110,19 @@ namespace graphSNA.UI
             if (ActiveGraph == null) return 0;
             return ColoringAlgorithm.ApplyWelshPowell(ActiveGraph);
         }
+        // --- DEGREE CENTRALITY ANALYSIS ---
+        // Returns the top count nodes with the highest connection frequency
+        public List<Node> GetTopInfluencers(int count)
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count == 0)
+                return new List<Node>();
+
+            // Sort by ConnectionCount (primary) and Interaction (secondary) descending
+            return ActiveGraph.Nodes
+                .OrderByDescending(n => n.ConnectionCount)
+                .ThenByDescending(n => n.Interaction)
+                .Take(count)
+                .ToList();
+        }
     }
 }
