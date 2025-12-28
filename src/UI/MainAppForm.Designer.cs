@@ -2,30 +2,16 @@
 {
     partial class MainAppForm
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
         private System.ComponentModel.IContainer components = null;
 
-        /// <summary>
-        /// Clean up any resources being used.
-        /// </summary>
-        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
         #region Windows Form Designer generated code
 
-        /// <summary>
-        /// Required method for Designer support - do not modify
-        /// the contents of this method with the code editor.
-        /// </summary>
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainAppForm));
@@ -40,6 +26,24 @@
             button2 = new Button();
             button1 = new Button();
             groupBox2 = new GroupBox();
+            
+            // --- TANIMLAMALAR ---
+            btnFindShortestPath = new Button();
+            txtCost = new TextBox();
+            lblCost = new Label();
+            labelSelectShortestPath = new Label();
+            radioAstar = new RadioButton();
+            radioDijsktra = new RadioButton();
+            
+            labelTraversal = new Label();
+            radioBFS = new RadioButton();
+            radioDFS = new RadioButton();
+            btnTraverse = new Button();
+
+            // YENİ EKLENEN BUTON
+            btnColoring = new Button(); 
+            // ------------------
+
             tabPage2 = new TabPage();
             dataGridView1 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
@@ -50,6 +54,7 @@
             tabPage1.SuspendLayout();
             flowLayoutPanel1.SuspendLayout();
             groupBox1.SuspendLayout();
+            groupBox2.SuspendLayout();
             tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
@@ -59,13 +64,7 @@
             splitContainer1.Dock = DockStyle.Fill;
             splitContainer1.Location = new Point(0, 0);
             splitContainer1.Name = "splitContainer1";
-            // 
-            // splitContainer1.Panel1
-            // 
             splitContainer1.Panel1.Controls.Add(panel1);
-            // 
-            // splitContainer1.Panel2
-            // 
             splitContainer1.Panel2.Controls.Add(tabControl1);
             splitContainer1.Size = new Size(1064, 681);
             splitContainer1.SplitterDistance = 800;
@@ -142,7 +141,7 @@
             button3.Name = "button3";
             button3.Size = new Size(111, 23);
             button3.TabIndex = 2;
-            button3.Text = "Force-Directed Layout";
+            button3.Text = "Force-Directed";
             button3.UseVisualStyleBackColor = false;
             // 
             // button2
@@ -165,12 +164,137 @@
             // 
             // groupBox2
             // 
+            groupBox2.Controls.Add(btnTraverse); 
+            groupBox2.Controls.Add(radioDFS);    
+            groupBox2.Controls.Add(radioBFS);    
+            groupBox2.Controls.Add(labelTraversal); 
+            groupBox2.Controls.Add(btnFindShortestPath);
+            groupBox2.Controls.Add(txtCost);
+            groupBox2.Controls.Add(lblCost);
+            groupBox2.Controls.Add(labelSelectShortestPath);
+            groupBox2.Controls.Add(radioAstar);
+            groupBox2.Controls.Add(radioDijsktra);
+            
+            // YENİ EKLENEN KONTROL
+            groupBox2.Controls.Add(btnColoring);
+            // --------------------
+
             groupBox2.Location = new Point(3, 86);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(238, 164);
+            groupBox2.Size = new Size(238, 300); // BOYUTU ARTTIRDIM (250 -> 300)
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
-            groupBox2.Text = "groupBox2";
+            groupBox2.Text = "Analysis";
+            // 
+            // labelSelectShortestPath
+            // 
+            labelSelectShortestPath.AutoSize = true;
+            labelSelectShortestPath.Location = new Point(6, 19);
+            labelSelectShortestPath.Name = "labelSelectShortestPath";
+            labelSelectShortestPath.Size = new Size(94, 15);
+            labelSelectShortestPath.TabIndex = 2;
+            labelSelectShortestPath.Text = "Shortest Path:";
+            // 
+            // radioDijsktra
+            // 
+            radioDijsktra.AutoSize = true;
+            radioDijsktra.Checked = true;
+            radioDijsktra.Location = new Point(6, 37);
+            radioDijsktra.Name = "radioDijsktra";
+            radioDijsktra.Size = new Size(63, 19);
+            radioDijsktra.TabIndex = 0;
+            radioDijsktra.TabStop = true;
+            radioDijsktra.Text = "Dijkstra";
+            radioDijsktra.UseVisualStyleBackColor = true;
+            // 
+            // radioAstar
+            // 
+            radioAstar.AutoSize = true;
+            radioAstar.Location = new Point(6, 62);
+            radioAstar.Name = "radioAstar";
+            radioAstar.Size = new Size(39, 19);
+            radioAstar.TabIndex = 1;
+            radioAstar.Text = "A*";
+            radioAstar.UseVisualStyleBackColor = true;
+            // 
+            // lblCost
+            // 
+            lblCost.AutoSize = true;
+            lblCost.Location = new Point(6, 100);
+            lblCost.Name = "lblCost";
+            lblCost.Size = new Size(34, 15);
+            lblCost.TabIndex = 3;
+            lblCost.Text = "Cost:";
+            // 
+            // txtCost
+            // 
+            txtCost.Location = new Point(47, 97);
+            txtCost.Name = "txtCost";
+            txtCost.ReadOnly = true;
+            txtCost.Size = new Size(185, 23);
+            txtCost.TabIndex = 4;
+            // 
+            // btnFindShortestPath
+            // 
+            btnFindShortestPath.Location = new Point(6, 126);
+            btnFindShortestPath.Name = "btnFindShortestPath";
+            btnFindShortestPath.Size = new Size(226, 30);
+            btnFindShortestPath.TabIndex = 5;
+            btnFindShortestPath.Text = "Find Shortest Path";
+            btnFindShortestPath.UseVisualStyleBackColor = true;
+            
+            // --- BFS / DFS KONTROLLERİ ---
+            // 
+            // labelTraversal
+            // 
+            labelTraversal.AutoSize = true;
+            labelTraversal.Location = new Point(6, 165);
+            labelTraversal.Name = "labelTraversal";
+            labelTraversal.Size = new Size(100, 15);
+            labelTraversal.TabIndex = 6;
+            labelTraversal.Text = "Graph Traversal:";
+            // 
+            // radioBFS
+            // 
+            radioBFS.AutoSize = true;
+            radioBFS.Checked = true;
+            radioBFS.Location = new Point(6, 185);
+            radioBFS.Name = "radioBFS";
+            radioBFS.Size = new Size(44, 19);
+            radioBFS.TabIndex = 7;
+            radioBFS.TabStop = true;
+            radioBFS.Text = "BFS";
+            radioBFS.UseVisualStyleBackColor = true;
+            // 
+            // radioDFS
+            // 
+            radioDFS.AutoSize = true;
+            radioDFS.Location = new Point(6, 210);
+            radioDFS.Name = "radioDFS";
+            radioDFS.Size = new Size(45, 19);
+            radioDFS.TabIndex = 8;
+            radioDFS.Text = "DFS";
+            radioDFS.UseVisualStyleBackColor = true;
+            // 
+            // btnTraverse
+            // 
+            btnTraverse.Location = new Point(121, 185);
+            btnTraverse.Name = "btnTraverse";
+            btnTraverse.Size = new Size(111, 44);
+            btnTraverse.TabIndex = 9;
+            btnTraverse.Text = "Run Traversal";
+            btnTraverse.UseVisualStyleBackColor = true;
+            // 
+            // btnColoring
+            // 
+            btnColoring.Location = new Point(6, 250);
+            btnColoring.Name = "btnColoring";
+            btnColoring.Size = new Size(226, 35);
+            btnColoring.TabIndex = 10;
+            btnColoring.Text = "Grafı Renklendir (Welsh-Powell)";
+            btnColoring.UseVisualStyleBackColor = true;
+            // -----------------------------
+
             // 
             // tabPage2
             // 
@@ -210,6 +334,8 @@
             tabPage1.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);
             groupBox1.ResumeLayout(false);
+            groupBox2.ResumeLayout(false);
+            groupBox2.PerformLayout();
             tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
@@ -230,5 +356,22 @@
         private Button button3;
         private DataGridView dataGridView1;
         private Button button4;
+        
+        // Shortest Path Controls
+        private Button btnFindShortestPath;
+        private TextBox txtCost;
+        private Label lblCost;
+        private Label labelSelectShortestPath;
+        private RadioButton radioAstar;
+        private RadioButton radioDijsktra;
+
+        // Traversal Controls
+        private Label labelTraversal;
+        private RadioButton radioBFS;
+        private RadioButton radioDFS;
+        private Button btnTraverse;
+
+        //coloring button
+        private Button btnColoring;
     }
 }

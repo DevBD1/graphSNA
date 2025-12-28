@@ -72,5 +72,57 @@ namespace graphSNA.UI
             // 100 iterasyon boyunca hesapla ve en son halini kaydet
             layout.CalculateLayout(ActiveGraph, width, height, 100);
         }
+
+        // Shortest Path
+        public (List<Node> path, double cost) CalculateShortestPath(Node start, Node end, string algorithmType)
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count < 2)
+                return (new List<Node>(), 0);
+
+            IShortestPathAlgorithm algorithm;
+
+            if (algorithmType == "A*")
+                algorithm = new AStarAlgorithm();
+            else
+                algorithm = new DijkstraAlgorithm(); // Varsayılan
+
+            ShortestPathManager manager = new ShortestPathManager(algorithm);
+            return manager.Calculate(ActiveGraph, start, end);
+        }
+        // Graph Traversal Logic (Polymorphism applied here)
+        public List<Node> TraverseGraph(Node startNode, string algorithmType)
+        {
+            if (ActiveGraph == null || startNode == null)
+                return new List<Node>();
+
+            IGraphTraversal traversalAlgorithm;
+
+            // Select algorithm dynamically
+            if (algorithmType == "DFS")
+                traversalAlgorithm = new DFS();
+            else
+                traversalAlgorithm = new BFS(); // Default
+
+            return traversalAlgorithm.Traverse(ActiveGraph, startNode);
+        }
+        public int ColorGraph()
+        {
+            if (ActiveGraph == null) return 0;
+            return ColoringAlgorithm.ApplyWelshPowell(ActiveGraph);
+        }
+        // --- DEGREE CENTRALITY ANALYSIS ---
+        // Returns the top count nodes with the highest connection frequency
+        public List<Node> GetTopInfluencers(int count)
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count == 0)
+                return new List<Node>();
+
+            // Sort by ConnectionCount (primary) and Interaction (secondary) descending
+            return ActiveGraph.Nodes
+                .OrderByDescending(n => n.ConnectionCount)
+                .ThenByDescending(n => n.Interaction)
+                .Take(count)
+                .ToList();
+        }
     }
 }
