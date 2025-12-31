@@ -1,4 +1,5 @@
-﻿using graphSNA.Model;
+﻿using graphSNA.Model.Algorithms;
+using graphSNA.Model.Foundation;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -108,7 +109,7 @@ namespace graphSNA.UI
         public int ColorGraph()
         {
             if (ActiveGraph == null) return 0;
-            return ColoringAlgorithm.ApplyWelshPowell(ActiveGraph);
+            return Coloring.ApplyWelshPowell(ActiveGraph);
         }
         // --- DEGREE CENTRALITY ANALYSIS ---
         // Returns the top count nodes with the highest connection frequency

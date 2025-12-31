@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Windows.Forms;
 using System.IO;
-using graphSNA.Model;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using graphSNA.Model.Foundation;
 
 namespace graphSNA.UI
 {

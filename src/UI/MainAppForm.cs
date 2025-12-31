@@ -3,7 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Reflection;
-using graphSNA.Model;
+using graphSNA.Model.Foundation;
 
 namespace graphSNA.UI
 {
