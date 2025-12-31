@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using graphSNA.Model.Foundation;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Algorithms
 {
-    public static class ColoringAlgorithm
+    public static class Coloring
     {
         private static readonly List<Color> Palette = new List<Color>
         {
@@ -67,8 +68,8 @@ namespace graphSNA.Model
         private static bool AreNeighbors(Graph graph, Node n1, Node n2)
         {
             return graph.Edges.Any(e =>
-                (e.Source == n1 && e.Target == n2) ||
-                (e.Source == n2 && e.Target == n1));
+                e.Source == n1 && e.Target == n2 ||
+                e.Source == n2 && e.Target == n1);
         }
     }
 }

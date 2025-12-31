@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Drawing;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     // Sorumluluk: Düğümleri ekrana matematiksel olarak yerleştirmek.
     public static class LayoutStrategy
@@ -14,7 +14,7 @@ namespace graphSNA.Model
             for (int i = 0; i < count; i++)
             {
                 // Trigonometri hesabı
-                double angle = (2.0 * Math.PI * i) / count;
+                double angle = 2.0 * Math.PI * i / count;
 
                 int x = (int)(centerX + radius * Math.Cos(angle));
                 int y = (int)(centerY + radius * Math.Sin(angle));

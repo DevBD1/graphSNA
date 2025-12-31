@@ -3,7 +3,7 @@ using System.IO;
 using System.Text;
 using System.Collections.Generic;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     // Sorumluluk: Sadece Dosya Okuma/Yazma ve işlem sırasını yönetme.
     public static class FileManager

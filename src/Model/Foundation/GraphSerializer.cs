@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     // Sorumluluk: CSV verisini Graph nesnesine (ve tersine) çevirmek.
     public static class GraphSerializer
@@ -61,7 +61,7 @@ namespace graphSNA.Model
                     {
                         Node target = nodeMap[targetId];
                         // Çift yönlü kontrol
-                        if (!graph.Edges.Any(e => (e.Source == source && e.Target == target) || (e.Source == target && e.Target == source)))
+                        if (!graph.Edges.Any(e => e.Source == source && e.Target == target || e.Source == target && e.Target == source))
                         {
                             graph.AddEdge(source, target);
                         }

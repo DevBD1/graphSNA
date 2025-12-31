@@ -2,7 +2,7 @@
 using System.Drawing;
 using System.Collections.Generic;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     public class Layout
     {
@@ -47,7 +47,7 @@ namespace graphSNA.Model
                         if (dist < 0.1) dist = 0.1; // Sıfıra bölünme hatasını önle
 
                         // İtme Formülü: Fr = k^2 / dist
-                        double force = (k * k) / dist;
+                        double force = k * k / dist;
 
                         // Kuvveti uygula
                         float dispX = (float)(dx / dist * force);
@@ -73,7 +73,7 @@ namespace graphSNA.Model
                     if (dist < 0.1) dist = 0.1;
 
                     // Çekme Formülü: Fa = dist^2 / k
-                    double force = (dist * dist) / k;
+                    double force = dist * dist / k;
 
                     float dispX = (float)(dx / dist * force);
                     float dispY = (float)(dy / dist * force);

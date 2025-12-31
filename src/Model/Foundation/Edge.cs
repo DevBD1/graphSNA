@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     /// <summary>
     ///  Represents a connection (link) between two nodes.
@@ -28,7 +28,7 @@ namespace graphSNA.Model
             float Diff_Act = Math.Abs(Source.Activity - Target.Activity);
             float Diff_Int = Math.Abs(Source.Interaction - Target.Interaction);
             float Diff_ConCount = Math.Abs(Source.ConnectionCount - Target.ConnectionCount);
-            this.Weight = 1 / ( 1 + Math.Sqrt( (Diff_Act * Diff_Act) + (Diff_Int * Diff_Int) + (Diff_ConCount * Diff_ConCount) ) );
+            Weight = 1 / ( 1 + Math.Sqrt( Diff_Act * Diff_Act + Diff_Int * Diff_Int + Diff_ConCount * Diff_ConCount ) );
         }
     }
 }

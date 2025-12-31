@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using graphSNA.Model.Foundation;
+using System.Collections.Generic;
 using System.Linq;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Algorithms
 {
     // Depth-First Search implementation (Iterative approach)
     public class DFS : IGraphTraversal

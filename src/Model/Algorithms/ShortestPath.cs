@@ -1,8 +1,9 @@
-﻿using System;
+﻿using graphSNA.Model.Foundation;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Algorithms
 {
     public interface IShortestPathAlgorithm
     {
@@ -115,7 +116,7 @@ namespace graphSNA.Model
         {
             foreach (var edge in graph.Edges)
             {
-                if ((edge.Source == a && edge.Target == b) || (edge.Source == b && edge.Target == a))
+                if (edge.Source == a && edge.Target == b || edge.Source == b && edge.Target == a)
                 {
                     return edge.Weight;
                 }

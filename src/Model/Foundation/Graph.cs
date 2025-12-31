@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace graphSNA.Model
+namespace graphSNA.Model.Foundation
 {
     /// <summary>
     /// Manages the entire graph structure, including all nodes and edges.
