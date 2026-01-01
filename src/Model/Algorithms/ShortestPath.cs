@@ -1,15 +1,10 @@
-﻿using graphSNA.Model.Foundation;
+using graphSNA.Model.Foundation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
-    public interface IShortestPathAlgorithm
-    {
-        (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal);
-    }
-
     // 1. DIJKSTRA ALGORITHM
     public class DijkstraAlgorithm : IShortestPathAlgorithm
     {
