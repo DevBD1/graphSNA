@@ -8,9 +8,6 @@ namespace graphSNA.Model.Foundation
     {
         // İtme ve Çekme Kuvveti Ayarları
         private double k; // İdeal yay uzunluğu
-        private const double RepulsionFactor = 50000.0; // İtme gücü
-        private const double AttractionFactor = 0.05;   // Çekme gücü
-
         // Graf alanı sınırları
         private int AreaWidth;
         private int AreaHeight;
@@ -26,7 +23,9 @@ namespace graphSNA.Model.Foundation
 
             // İdeal yay uzunluğu (Formülü koruyoruz)
             double area = width * height;
-            k = Math.Sqrt(area / (graph.Nodes.Count + 1));
+            // Eski: k = Math.Sqrt(area / (graph.Nodes.Count + 1));
+            // Yeni: Sonuna * 0.6 ekledik. Bu, grafiği %40 daha dar bir alana sıkıştırır.
+            k = Math.Sqrt(area / (graph.Nodes.Count + 1)) * 0.6;
 
             // Başlangıç sıcaklığı (Simulated Annealing)
             double temperature = width / 10.0;
@@ -38,15 +37,15 @@ namespace graphSNA.Model.Foundation
                 // 1. İTME KUVVETLERİ (Repulsion)
                 foreach (var v in graph.Nodes)
                 {
-                    displacements[v] = PointF.Empty;
+                    displacements[v] = PointF.Empty; // reset
                     foreach (var u in graph.Nodes)
                     {
                         if (v == u) continue;
                         double dx = v.Location.X - u.Location.X;
                         double dy = v.Location.Y - u.Location.Y;
                         double dist = Math.Sqrt(dx * dx + dy * dy);
-                        if (dist < 0.1) dist = 0.1;
-
+                        if (dist < 0.1) dist = 0.1; // 0'a bölünme hatasını önle
+                        // İtme Formülü: Fr = k^2 / dist
                         double force = (k * k) / dist;
                         displacements[v] = new PointF(
                             displacements[v].X + (float)(dx / dist * force),
@@ -60,12 +59,22 @@ namespace graphSNA.Model.Foundation
                 {
                     Node v = edge.Source;
                     Node u = edge.Target;
+
                     double dx = v.Location.X - u.Location.X;
                     double dy = v.Location.Y - u.Location.Y;
                     double dist = Math.Sqrt(dx * dx + dy * dy);
+
                     if (dist < 0.1) dist = 0.1;
 
-                    double force = (dist * dist) / k;
+                    // --- FORMÜL DEĞİŞİKLİĞİ ---
+                    // Weight (0 ile 1 arası).
+                    // Karesini alıyoruz ki (Weight^2), yüksek ağırlıklar ÇOK daha etkili olsun.
+                    // Çarpanı 20.0 yaptık. Weight=1 olanlar 21 kat güçlü çekecek!
+                    double weightFactor = 1.0 + (edge.Weight * edge.Weight * 20.0);
+
+                    // Normal kuvveti bu faktörle çarpıyoruz
+                    double force = ((dist * dist) / k) * weightFactor;
+
                     float dispX = (float)(dx / dist * force);
                     float dispY = (float)(dy / dist * force);
 
@@ -82,7 +91,9 @@ namespace graphSNA.Model.Foundation
                     double dist = Math.Sqrt(dx * dx + dy * dy);
 
                     // Gravity gücü (Düğüm sayısı arttıkça artmalı ki dağılmasın)
-                    double gravityForce = 0.05 * k;
+                    // Eski: double gravityForce = 0.05 * k;
+                    // Yeni: 0.20 yaptık. (Merkeze çekim gücü 4 kat arttı, dağılmayı önler)
+                    double gravityForce = 0.20 * k;
 
                     if (dist > 0)
                     {
@@ -101,15 +112,13 @@ namespace graphSNA.Model.Foundation
 
                     if (length > 0)
                     {
-                        // Hareketi sıcaklıkla kısıtla
+                        // Hareketi sıcaklıkla sınırla (Titremeyi önler)
                         double limitedLength = Math.Min(length, temperature);
-
+                        
                         disp.X = (float)(disp.X / length * limitedLength);
                         disp.Y = (float)(disp.Y / length * limitedLength);
 
-                        // --- DUVARLARI YIKTIK ---
-                        // Artık Math.Max/Min yok. Koordinatlar eksiye veya width'in ötesine geçebilir.
-                        // Zoom/Pan sistemimiz olduğu için bu sorun değil, aksine daha doğal durur.
+                        // Yeni koordinatları ata (Sınırlandırma/Clamp YOK - Özgürce dağılsınlar)
                         int newX = (int)(v.Location.X + disp.X);
                         int newY = (int)(v.Location.Y + disp.Y);
 
@@ -122,6 +131,7 @@ namespace graphSNA.Model.Foundation
             }
         }
 
-        private const int NodeSize = 30; // Kenarlardan taşmaması için
+        // Düğüm boyutu (Referans için, hesaplamada kritik değil)
+        private const int NodeSize = 30;
     }
 }

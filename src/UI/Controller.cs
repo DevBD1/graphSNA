@@ -85,6 +85,7 @@ namespace graphSNA.UI
         {
             // Yeni grafı yükle ve aktif graf olarak ata
             ActiveGraph = FileManager.LoadGraph(filePath);
+            //RecalculateAllWeights();
         }
         public void ApplyForceLayout(int width, int height)
         {
@@ -176,8 +177,11 @@ namespace graphSNA.UI
         }
         // Tıklanan noktaya yakın bir Edge var mı? (Tolerans: 5 piksel)
         // Sağ tıkla silmek için gerekli!
-        public Edge FindEdgeAtPoint(Point clickPoint, float tolerance = 5f)
+        public Edge FindEdgeAtPoint(Point clickPoint, float tolerance = 15f) // 1. Toleransı 5'ten 15'e çıkardık 🎯
         {
+            Edge bestMatch = null;
+            double minDistance = double.MaxValue; // En kısa mesafeyi takip et
+
             foreach (var edge in ActiveGraph.Edges)
             {
                 float x1 = edge.Source.Location.X;
@@ -185,12 +189,18 @@ namespace graphSNA.UI
                 float x2 = edge.Target.Location.X;
                 float y2 = edge.Target.Location.Y;
 
-                if (GetDistanceToLineSegment(clickPoint.X, clickPoint.Y, x1, y1, x2, y2) <= tolerance)
+                // Mesafeyi hesapla
+                float distance = GetDistanceToLineSegment(clickPoint.X, clickPoint.Y, x1, y1, x2, y2);
+
+                // 2. Eğer tolerans içindeyse VE şu ana kadar bulduğumuz en yakın kenarsa
+                if (distance <= tolerance && distance < minDistance)
                 {
-                    return edge;
+                    minDistance = distance;
+                    bestMatch = edge;
                 }
             }
-            return null;
+
+            return bestMatch; // En yakın kenarı döndür (veya bulamadıysa null)
         }
         // Matematiksel Yardımcı: Noktanın Çizgiye Uzaklığı
         private float GetDistanceToLineSegment(float px, float py, float x1, float y1, float x2, float y2)
@@ -206,6 +216,15 @@ namespace graphSNA.UI
             else { dx = px - (x1 + t * dx); dy = py - (y1 + t * dy); }
 
             return (float)Math.Sqrt(dx * dx + dy * dy);
+        }
+        public void RecalculateAllWeights()
+        {
+            if (ActiveGraph == null) return;
+
+            foreach (var edge in ActiveGraph.Edges)
+            {
+                edge.CalculateWeight();
+            }
         }
     }
 }

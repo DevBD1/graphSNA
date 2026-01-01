@@ -36,6 +36,11 @@ namespace graphSNA.UI
             this.button9.Click += BtnRefreshStats_Click;
             // YENİ: Layout (Yeniden Dizilim) Butonu
             this.button3.Click += BtnApplyLayout_Click;
+            this.button4.Click += BtnWeighted_Click;
+            // CheckBox değiştiği an ekranı yeniden çiz (Invalidate)
+            this.chkShowWeights.CheckedChanged += (s, e) => panel1.Invalidate();
+            this.button5.Click += btnEditNode_Click;
+            this.button6.Click += btnDeleteNode_Click;
 
         }
 
@@ -49,6 +54,7 @@ namespace graphSNA.UI
                 {
                     controller.LoadGraph(ofd.FileName);
                     groupBox1.Text = $"File: {Path.GetFileName(ofd.FileName)}";
+                    controller.RecalculateAllWeights();
                     //Distributes nodes across the screen randomly and uniformly
                     controller.ApplyForceLayout(panel1.Width, panel1.Height);
 
@@ -56,8 +62,8 @@ namespace graphSNA.UI
                     // 1. Sanal Genişliği Hesapla
                     int nodeCount = controller.ActiveGraph.Nodes.Count;
                     // Min 800px olsun, yoksa çok küçük graflar ezilmesin.
-                    int virtualWidth = Math.Max(800, nodeCount * 50);
-                    int virtualHeight = Math.Max(600, nodeCount * 50);
+                    int virtualWidth = Math.Max(800, nodeCount * 20);
+                    int virtualHeight = Math.Max(600, nodeCount * 20);
 
                     // 2. Fizik Motorunu Çalıştır
                     controller.ApplyForceLayout(virtualWidth, virtualHeight);
@@ -363,8 +369,8 @@ namespace graphSNA.UI
             // Panel boyutlarını veriyoruz ki dışarı taşmasınlar.
             // Düğüm sayısına göre alan belirle (Min 1000px, her düğüm için ekstra alan)
             int nodeCount = controller.ActiveGraph.Nodes.Count;
-            int virtualWidth = Math.Max(panel1.Width, nodeCount * 50);  // Düğüm başına 50px alan
-            int virtualHeight = Math.Max(panel1.Height, nodeCount * 50);
+            int virtualWidth = Math.Max(panel1.Width, nodeCount * 20);  // Düğüm başına 50px alan
+            int virtualHeight = Math.Max(panel1.Height, nodeCount * 20);
 
             controller.ApplyForceLayout(virtualWidth, virtualHeight);
 
@@ -373,6 +379,94 @@ namespace graphSNA.UI
 
             // İmleci düzelt
             Cursor = Cursors.Default;
+        }
+        private void BtnWeighted_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null) return;
+
+            Cursor = Cursors.WaitCursor;
+
+            // 1. ÖNCE: Tüm ağırlıkları matematiksel olarak hesapla
+            controller.RecalculateAllWeights();
+
+            // 2. SONRA: Bu ağırlıklara göre fizik motorunu çalıştır
+            // (Layout.cs artık yeni Weight değerlerini kullanacak)
+            // Alan boyutunu hesapla (önceki adımda yaptığımız 'akıllı alan' mantığı)
+            int nodeCount = controller.ActiveGraph.Nodes.Count;
+            int virtualWidth = Math.Max(800, nodeCount * 50);
+            int virtualHeight = Math.Max(600, nodeCount * 50);
+
+            controller.ApplyForceLayout(virtualWidth, virtualHeight);
+
+            // 3. EN SON: Ekranı ortala ve boya
+            // (Buraya 'Akıllı Zoom/Pan' kod bloğunu ekleyebilirsin veya basitçe Invalidate)
+
+            // Basitçe yeniden çizelim (Zoom ayarları korunsun istiyorsan):
+            panel1.Invalidate();
+
+            Cursor = Cursors.Default;
+        }
+        private void btnEditNode_Click(object sender, EventArgs e)
+        {
+            // 1. Güvenlik Kontrolü: Seçili düğüm var mı?
+            if (selectedNode == null)
+            {
+                MessageBox.Show("Lütfen önce düzenlemek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Formu Hazırla
+            InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
+
+            // Mevcut verileri forma doldur (Kullanıcı sıfırdan yazmasın)
+            form.NodeName = selectedNode.Name;
+            form.Activity = selectedNode.Activity;
+            form.Interaction = selectedNode.Interaction;
+
+            // 3. Formu Göster ve Sonucu Bekle
+            if (form.ShowDialog() == DialogResult.OK)
+            {
+                // Verileri güncelle
+                controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
+
+                // Değerler değiştiği için kenar ağırlıklarını (Weight) tekrar hesapla!
+                controller.RecalculateAllWeights();
+
+                // Sağ paneldeki bilgileri güncelle
+                UpdateNodeInfoPanel(selectedNode);
+
+                // Ekranı yenile (Kalınlıklar ve renkler değişsin)
+                panel1.Invalidate();
+            }
+        }
+        private void btnDeleteNode_Click(object sender, EventArgs e)
+        {
+            // 1. Seçim Kontrolü
+            if (selectedNode == null)
+            {
+                MessageBox.Show("Lütfen silmek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // 2. Onay İste
+            var result = MessageBox.Show(
+                $"'{selectedNode.Name}' kişisini ve tüm bağlantılarını silmek istediğinize emin misiniz?",
+                "Silme Onayı",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            // 3. Silme İşlemi
+            if (result == DialogResult.Yes)
+            {
+                controller.RemoveNode(selectedNode);
+
+                // Bir kişi silinince komşuların bağlantı sayısı değişir, ağırlıkları yenilemek iyidir.
+                controller.RecalculateAllWeights();
+
+                selectedNode = null;
+                ClearNodeInfoPanel(); // Sağ paneldeki yazıları temizle
+                panel1.Invalidate();  // Grafiği tekrar çiz
+            }
         }
     }
 }

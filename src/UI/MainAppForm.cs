@@ -87,23 +87,66 @@ namespace graphSNA.UI
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 1. Move
+            // 1. Move (Pan)
             g.TranslateTransform(panOffsetX, panOffsetY);
             // 2. Zoom
             g.ScaleTransform(zoomFactor, zoomFactor);
 
-            // Draw Edges
-            using (Pen edgePen = new Pen(Color.FromArgb(200, 220, 220, 220), 1))
+            // ========================================================================
+            // 1. DRAW EDGES (KENARLARI ÇİZ)
+            // ========================================================================
+
+            // Sayıları yazmak için font (Küçük ve okunaklı)
+            using (Font weightFont = new Font("Arial", 7, FontStyle.Regular))
             {
                 foreach (Edge edge in graphToDraw.Edges)
                 {
                     Point p1 = new Point(edge.Source.Location.X + NodeRadius, edge.Source.Location.Y + NodeRadius);
                     Point p2 = new Point(edge.Target.Location.X + NodeRadius, edge.Target.Location.Y + NodeRadius);
-                    g.DrawLine(edgePen, p1, p2);
+
+                    // A. KALINLIK: Weight'e göre (1px - 5px arası)
+                    float thickness = 1.0f + (float)(edge.Weight * 4.0f);
+                    if (thickness > 8) thickness = 8; // Çok aşırı kalınlaşmasın
+
+                    // B. RENK: Standart Gri (Röntgen modunu kapattık)
+                    Color edgeColor = Color.FromArgb(180, 160, 160, 160);
+
+                    // Çizgiyi Çiz
+                    using (Pen dynamicPen = new Pen(edgeColor, thickness))
+                    {
+                        dynamicPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
+                        dynamicPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                        g.DrawLine(dynamicPen, p1, p2);
+                    }
+
+                    // =========================================================
+                    // C. SAYI YAZDIRMA (GÜNCELLENEN KISIM) 🛠️
+                    // =========================================================
+                    // Sadece kutucuk işaretliyse sayıları yaz!
+                    if (chkShowWeights.Checked)
+                    {
+                        // Çizginin tam orta noktasını bul
+                        float midX = (p1.X + p2.X) / 2;
+                        float midY = (p1.Y + p2.Y) / 2;
+
+                        string weightText = edge.Weight.ToString("0.00");
+                        SizeF textSize = g.MeasureString(weightText, weightFont);
+
+                        RectangleF textRect = new RectangleF(
+                            midX - (textSize.Width / 2),
+                            midY - (textSize.Height / 2),
+                            textSize.Width,
+                            textSize.Height);
+
+                        g.FillRectangle(Brushes.WhiteSmoke, textRect);
+                        g.DrawString(weightText, weightFont, Brushes.Black, textRect.Location);
+                    }
                 }
             }
 
-            // Draw Nodes
+            // ========================================================================
+            // 2. DRAW NODES (DÜĞÜMLERİ ÇİZ - AYNI KALDI)
+            // ========================================================================
             Font font = new Font("Arial", 8, FontStyle.Regular);
 
             foreach (Node node in graphToDraw.Nodes)
@@ -136,27 +179,28 @@ namespace graphSNA.UI
                 g.DrawString(node.Name, font, Brushes.Black, node.Location.X - 5, node.Location.Y - 15);
             }
 
+            // ========================================================================
+            // 3. GHOST LINE (HAYALET ÇİZGİ - AYNI KALDI)
+            // ========================================================================
             if (isDraggingEdge && edgeSourceNode != null)
             {
                 // 1. Farenin Ekran Konumunu -> Dünya Konumuna (World Coords) Çevir
-                // Formül: (Mouse - Pan) / Zoom
                 float mouseWorldX = (currentMousePos.X - panOffsetX) / zoomFactor;
                 float mouseWorldY = (currentMousePos.Y - panOffsetY) / zoomFactor;
 
                 PointF targetPoint = new PointF(mouseWorldX, mouseWorldY);
 
                 // 2. Kaynak Düğümün Merkezini Bul
-                // Düğümün sol üst köşesi değil, tam ortasından çıksın (+ NodeRadius)
                 PointF sourcePoint = new PointF(
                     edgeSourceNode.Location.X + NodeRadius,
                     edgeSourceNode.Location.Y + NodeRadius
                 );
 
-                // 3. Çizgiyi Çiz (Artık transform yapmıyoruz, Graphics g zaten ayarlı!)
+                // 3. Çizgiyi Çiz
                 using (Pen ghostPen = new Pen(Color.Red, 2))
                 {
-                    ghostPen.DashStyle = DashStyle.Dot; // Şık dursun diye kesikli çizgi
-                    e.Graphics.DrawLine(ghostPen, sourcePoint, targetPoint);
+                    ghostPen.DashStyle = DashStyle.Dot;
+                    g.DrawLine(ghostPen, sourcePoint, targetPoint);
                 }
             }
         }
@@ -170,6 +214,23 @@ namespace graphSNA.UI
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
+            if (!isPanning && !isDraggingEdge)
+            {
+                // Koordinat çevirimi
+                float worldX = (e.X - panOffsetX) / zoomFactor;
+                float worldY = (e.Y - panOffsetY) / zoomFactor;
+                Point worldPoint = new Point((int)worldX, (int)worldY);
+
+                // Altında bir şey var mı?
+                // Edge için geniş toleransı (15f) burada da kullanıyoruz
+                bool isOverNode = controller.FindNodeAtPoint(worldPoint, NodeRadius) != null;
+                bool isOverEdge = controller.FindEdgeAtPoint(worldPoint, 15f) != null;
+
+                if (isOverNode || isOverEdge)
+                    panel1.Cursor = Cursors.Hand; // Tıklanabilir el işareti 👆
+                else
+                    panel1.Cursor = Cursors.Default;
+            }
             if (isDraggingEdge)
             {
                 currentMousePos = e.Location; // Farenin ekran koordinatı

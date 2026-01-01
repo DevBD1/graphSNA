@@ -25,6 +25,7 @@
             button3 = new Button();
             button2 = new Button();
             button1 = new Button();
+            chkShowWeights = new CheckBox();
             groupBox2 = new GroupBox();
             btnFindShortestPath = new Button();
             txtCost = new TextBox();
@@ -32,8 +33,8 @@
             radioAstar = new RadioButton();
             radioDijsktra = new RadioButton();
             groupBox3 = new GroupBox();
-            btnTraverse = new Button();
             btnColoring = new Button();
+            btnTraverse = new Button();
             radioBFS = new RadioButton();
             radioDFS = new RadioButton();
             groupBox4 = new GroupBox();
@@ -45,9 +46,6 @@
             button5 = new Button();
             label1 = new Label();
             textBox1 = new TextBox();
-            groupBox5 = new GroupBox();
-            button8 = new Button();
-            button7 = new Button();
             tabPage2 = new TabPage();
             button9 = new Button();
             dataGridView1 = new DataGridView();
@@ -62,7 +60,6 @@
             groupBox2.SuspendLayout();
             groupBox3.SuspendLayout();
             groupBox4.SuspendLayout();
-            groupBox5.SuspendLayout();
             tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridView1).BeginInit();
             SuspendLayout();
@@ -121,7 +118,6 @@
             flowLayoutPanel1.Controls.Add(groupBox2);
             flowLayoutPanel1.Controls.Add(groupBox3);
             flowLayoutPanel1.Controls.Add(groupBox4);
-            flowLayoutPanel1.Controls.Add(groupBox5);
             flowLayoutPanel1.Dock = DockStyle.Fill;
             flowLayoutPanel1.Location = new Point(3, 3);
             flowLayoutPanel1.Name = "flowLayoutPanel1";
@@ -134,9 +130,10 @@
             groupBox1.Controls.Add(button3);
             groupBox1.Controls.Add(button2);
             groupBox1.Controls.Add(button1);
+            groupBox1.Controls.Add(chkShowWeights);
             groupBox1.Location = new Point(3, 3);
             groupBox1.Name = "groupBox1";
-            groupBox1.Size = new Size(238, 77);
+            groupBox1.Size = new Size(238, 99);
             groupBox1.TabIndex = 0;
             groupBox1.TabStop = false;
             groupBox1.Text = "<import a file>";
@@ -179,6 +176,18 @@
             button1.Text = "Import";
             button1.UseVisualStyleBackColor = true;
             // 
+            // chkShowWeights
+            // 
+            chkShowWeights.AutoSize = true;
+            chkShowWeights.Checked = true;
+            chkShowWeights.CheckState = CheckState.Checked;
+            chkShowWeights.Location = new Point(121, 74);
+            chkShowWeights.Name = "chkShowWeights";
+            chkShowWeights.Size = new Size(101, 19);
+            chkShowWeights.TabIndex = 5;
+            chkShowWeights.Text = "Show Weights";
+            chkShowWeights.UseVisualStyleBackColor = true;
+            // 
             // groupBox2
             // 
             groupBox2.Controls.Add(btnFindShortestPath);
@@ -186,18 +195,18 @@
             groupBox2.Controls.Add(lblCost);
             groupBox2.Controls.Add(radioAstar);
             groupBox2.Controls.Add(radioDijsktra);
-            groupBox2.Location = new Point(3, 86);
+            groupBox2.Location = new Point(3, 108);
             groupBox2.Name = "groupBox2";
-            groupBox2.Size = new Size(238, 147);
+            groupBox2.Size = new Size(238, 106);
             groupBox2.TabIndex = 1;
             groupBox2.TabStop = false;
             groupBox2.Text = "Shortest Path";
             // 
             // btnFindShortestPath
             // 
-            btnFindShortestPath.Location = new Point(5, 108);
+            btnFindShortestPath.Location = new Point(6, 76);
             btnFindShortestPath.Name = "btnFindShortestPath";
-            btnFindShortestPath.Size = new Size(226, 30);
+            btnFindShortestPath.Size = new Size(226, 23);
             btnFindShortestPath.TabIndex = 5;
             btnFindShortestPath.Text = "Find Shortest Path";
             btnFindShortestPath.UseVisualStyleBackColor = true;
@@ -205,7 +214,7 @@
             // 
             // txtCost
             // 
-            txtCost.Location = new Point(46, 69);
+            txtCost.Location = new Point(46, 47);
             txtCost.Name = "txtCost";
             txtCost.ReadOnly = true;
             txtCost.Size = new Size(185, 23);
@@ -214,7 +223,7 @@
             // lblCost
             // 
             lblCost.AutoSize = true;
-            lblCost.Location = new Point(6, 72);
+            lblCost.Location = new Point(6, 50);
             lblCost.Name = "lblCost";
             lblCost.Size = new Size(34, 15);
             lblCost.TabIndex = 3;
@@ -223,7 +232,7 @@
             // radioAstar
             // 
             radioAstar.AutoSize = true;
-            radioAstar.Location = new Point(6, 47);
+            radioAstar.Location = new Point(79, 22);
             radioAstar.Name = "radioAstar";
             radioAstar.Size = new Size(38, 19);
             radioAstar.TabIndex = 1;
@@ -244,16 +253,25 @@
             // 
             // groupBox3
             // 
-            groupBox3.Controls.Add(btnTraverse);
             groupBox3.Controls.Add(btnColoring);
+            groupBox3.Controls.Add(btnTraverse);
             groupBox3.Controls.Add(radioBFS);
             groupBox3.Controls.Add(radioDFS);
-            groupBox3.Location = new Point(3, 239);
+            groupBox3.Location = new Point(3, 220);
             groupBox3.Name = "groupBox3";
-            groupBox3.Size = new Size(238, 125);
+            groupBox3.Size = new Size(238, 102);
             groupBox3.TabIndex = 2;
             groupBox3.TabStop = false;
             groupBox3.Text = "Graph Traversal";
+            // 
+            // btnColoring
+            // 
+            btnColoring.Location = new Point(5, 72);
+            btnColoring.Name = "btnColoring";
+            btnColoring.Size = new Size(226, 23);
+            btnColoring.TabIndex = 10;
+            btnColoring.Text = "Grafı Renklendir (Welsh-Powell)";
+            btnColoring.UseVisualStyleBackColor = true;
             // 
             // btnTraverse
             // 
@@ -263,15 +281,6 @@
             btnTraverse.TabIndex = 9;
             btnTraverse.Text = "Run Traversal";
             btnTraverse.UseVisualStyleBackColor = true;
-            // 
-            // btnColoring
-            // 
-            btnColoring.Location = new Point(5, 83);
-            btnColoring.Name = "btnColoring";
-            btnColoring.Size = new Size(226, 35);
-            btnColoring.TabIndex = 10;
-            btnColoring.Text = "Grafı Renklendir (Welsh-Powell)";
-            btnColoring.UseVisualStyleBackColor = true;
             // 
             // radioBFS
             // 
@@ -305,9 +314,9 @@
             groupBox4.Controls.Add(button5);
             groupBox4.Controls.Add(label1);
             groupBox4.Controls.Add(textBox1);
-            groupBox4.Location = new Point(3, 370);
+            groupBox4.Location = new Point(3, 328);
             groupBox4.Name = "groupBox4";
-            groupBox4.Size = new Size(238, 147);
+            groupBox4.Size = new Size(238, 137);
             groupBox4.TabIndex = 3;
             groupBox4.TabStop = false;
             groupBox4.Text = "Node";
@@ -348,7 +357,7 @@
             // 
             // button6
             // 
-            button6.Location = new Point(120, 113);
+            button6.Location = new Point(120, 107);
             button6.Name = "button6";
             button6.Size = new Size(111, 23);
             button6.TabIndex = 3;
@@ -357,7 +366,7 @@
             // 
             // button5
             // 
-            button5.Location = new Point(5, 113);
+            button5.Location = new Point(5, 107);
             button5.Name = "button5";
             button5.Size = new Size(111, 23);
             button5.TabIndex = 2;
@@ -380,35 +389,6 @@
             textBox1.ReadOnly = true;
             textBox1.Size = new Size(149, 23);
             textBox1.TabIndex = 0;
-            // 
-            // groupBox5
-            // 
-            groupBox5.Controls.Add(button8);
-            groupBox5.Controls.Add(button7);
-            groupBox5.Location = new Point(3, 523);
-            groupBox5.Name = "groupBox5";
-            groupBox5.Size = new Size(238, 55);
-            groupBox5.TabIndex = 4;
-            groupBox5.TabStop = false;
-            groupBox5.Text = "Edge";
-            // 
-            // button8
-            // 
-            button8.Location = new Point(121, 22);
-            button8.Name = "button8";
-            button8.Size = new Size(110, 23);
-            button8.TabIndex = 1;
-            button8.Text = "Remove";
-            button8.UseVisualStyleBackColor = true;
-            // 
-            // button7
-            // 
-            button7.Location = new Point(6, 22);
-            button7.Name = "button7";
-            button7.Size = new Size(111, 23);
-            button7.TabIndex = 0;
-            button7.Text = "Add";
-            button7.UseVisualStyleBackColor = true;
             // 
             // tabPage2
             // 
@@ -458,13 +438,13 @@
             tabPage1.ResumeLayout(false);
             flowLayoutPanel1.ResumeLayout(false);
             groupBox1.ResumeLayout(false);
+            groupBox1.PerformLayout();
             groupBox2.ResumeLayout(false);
             groupBox2.PerformLayout();
             groupBox3.ResumeLayout(false);
             groupBox3.PerformLayout();
             groupBox4.ResumeLayout(false);
             groupBox4.PerformLayout();
-            groupBox5.ResumeLayout(false);
             tabPage2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)dataGridView1).EndInit();
             ResumeLayout(false);
@@ -504,13 +484,11 @@
         private TextBox textBox1;
         private Button button6;
         private Button button5;
-        private GroupBox groupBox5;
-        private Button button8;
-        private Button button7;
         private Label label3;
         private Label label2;
         private TextBox textBox2;
         private TextBox textBox3;
         private Button button9;
+        private CheckBox chkShowWeights;
     }
 }
