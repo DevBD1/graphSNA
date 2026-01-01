@@ -31,8 +31,11 @@ namespace graphSNA.UI
             this.btnTraverse.Click += RunTraverse;
             this.btnColoring.Click += RunColoring;
 
-            // Tab Page Change Event (For updating Statistics)
+            // Updating Statistics
             this.tabControl1.SelectedIndexChanged += TabSelectedIndexChanged;
+            this.button9.Click += BtnRefreshStats_Click;
+            // YENİ: Layout (Yeniden Dizilim) Butonu
+            this.button3.Click += BtnApplyLayout_Click;
 
         }
 
@@ -185,6 +188,12 @@ namespace graphSNA.UI
                 UpdateStatsTable();
             }
         }
+        private void BtnRefreshStats_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null) return;
+            UpdateStatsTable();
+            MessageBox.Show("Liste güncellendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
         private void UpdateStatsTable()
         {
             if (controller.ActiveGraph == null) return;
@@ -210,47 +219,117 @@ namespace graphSNA.UI
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
         }
-        
+
         // --- 6. CONTEXT MENU (RIGHT-CLICK) ---
         private void InitializeContextMenu()
         {
             graphContextMenu = new ContextMenuStrip();
 
-            // Menü Şıkları
+            // --- MENÜ ÖĞELERİNİ OLUŞTUR ---
             var itemAdd = new ToolStripMenuItem("Yeni Kişi Ekle");
-            var itemDelete = new ToolStripMenuItem("Sil");
-            var itemEdit = new ToolStripMenuItem("Düzenle (Özellikler)");
+            var itemDeleteNode = new ToolStripMenuItem("Seçili Kişiyi Sil");
+            var itemEditNode = new ToolStripMenuItem("Düzenle (Özellikler)");
+            var itemDeleteEdge = new ToolStripMenuItem("Bağlantıyı Sil"); // Yeni!
 
-            // Tıklama Olayları
+            // --- 1. YENİ KİŞİ EKLE ---
             itemAdd.Click += (s, e) => {
-                // Basitçe rastgele isimle ekleyelim (İleride InputBox yaparız)
-                string name = "User_" + new Random().Next(100, 999);
-                controller.AddNode(name, 0.5f, 50, 0, lastRightClickPoint);
-                panel1.Invalidate();
-            };
+                // Yeni form yapımız (Komşusuz, sade)
+                InputNodeForm form = new InputNodeForm("Yeni Kişi Ekle");
 
-            itemDelete.Click += (s, e) => {
-                if (selectedNode != null)
+                if (form.ShowDialog() == DialogResult.OK)
                 {
-                    controller.RemoveNode(selectedNode);
-                    selectedNode = null; // Seçimi kaldır
+                    // Controller üzerinden ekle (lastRightClickPoint: sağ tıklanan yer)
+                    controller.AddNode(form.NodeName, form.Activity, form.Interaction, 0, lastRightClickPoint);
                     panel1.Invalidate();
                 }
             };
 
-            itemEdit.Click += (s, e) => {
+            // --- 2. KİŞİYİ SİL ---
+            itemDeleteNode.Click += (s, e) => {
                 if (selectedNode != null)
                 {
-                    // Detayları gösterip düzenlemeye izin verebiliriz
-                    // Şimdilik sadece bilgi gösterelim, istersen buraya güncelleme formunu bağlarız
-                    MessageBox.Show($"Düzenlenecek: {selectedNode.Name}\nŞu anlık özellik güncelleme için InputForm yapmamız gerek.", "Bilgi");
+                    var result = MessageBox.Show(
+                        $"'{selectedNode.Name}' kişisini ve bağlantılarını silmek istiyor musunuz?",
+                        "Silme Onayı",
+                        MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Warning);
+
+                    if (result == DialogResult.Yes)
+                    {
+                        controller.RemoveNode(selectedNode);
+                        selectedNode = null;
+                        ClearNodeInfoPanel(); // Sağ paneli temizle
+                        panel1.Invalidate();
+                    }
                 }
             };
 
-            // Menüye Ekleme
+            // --- 3. DÜZENLE ---
+            itemEditNode.Click += (s, e) => {
+                if (selectedNode != null)
+                {
+                    InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
+
+                    // Mevcut verileri forma yükle
+                    form.NodeName = selectedNode.Name;
+                    form.Activity = selectedNode.Activity;
+                    form.Interaction = selectedNode.Interaction;
+
+                    if (form.ShowDialog() == DialogResult.OK)
+                    {
+                        // Güncelle
+                        controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
+
+                        // Sağ paneli de anlık güncelle
+                        UpdateNodeInfoPanel(selectedNode);
+                        panel1.Invalidate();
+                    }
+                }
+            };
+
+            // --- 4. BAĞLANTIYI (EDGE) SİL ---
+            itemDeleteEdge.Click += (s, e) => {
+                if (selectedEdge != null)
+                {
+                    // Controller'da yazdığımız RemoveEdge metodunu çağır
+                    controller.RemoveEdge(selectedEdge.Source, selectedEdge.Target);
+                    selectedEdge = null;
+                    panel1.Invalidate();
+                }
+            };
+
+            // --- MENÜYE EKLEME SIRASI ---
+            // İndex 0: Ekle
+            // İndex 1: Node Sil
+            // İndex 2: Düzenle
+            // İndex 3: Edge Sil
             graphContextMenu.Items.Add(itemAdd);
-            graphContextMenu.Items.Add(itemDelete);
-            graphContextMenu.Items.Add(itemEdit);
+            graphContextMenu.Items.Add(itemDeleteNode);
+            graphContextMenu.Items.Add(itemEditNode);
+            graphContextMenu.Items.Add(new ToolStripSeparator()); // Araya çizgi
+            graphContextMenu.Items.Add(itemDeleteEdge);
+        }
+        
+        private void BtnApplyLayout_Click(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
+            {
+                MessageBox.Show("Önce bir graf yükleyin veya oluşturun.");
+                return;
+            }
+
+            // İmleci bekleme moduna al (Hesaplama sürerse diye)
+            Cursor = Cursors.WaitCursor;
+
+            // 1. Fizik motorunu çalıştır (100 iterasyon boyunca en iyi konumu arar)
+            // Panel boyutlarını veriyoruz ki dışarı taşmasınlar.
+            controller.ApplyForceLayout(panel1.Width, panel1.Height);
+
+            // 2. Yeni koordinatlara göre ekranı tekrar çiz
+            panel1.Invalidate();
+
+            // İmleci düzelt
+            Cursor = Cursors.Default;
         }
     }
 }

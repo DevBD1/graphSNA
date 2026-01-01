@@ -37,6 +37,7 @@
             radioBFS = new RadioButton();
             radioDFS = new RadioButton();
             groupBox4 = new GroupBox();
+            textBox3 = new TextBox();
             label3 = new Label();
             label2 = new Label();
             textBox2 = new TextBox();
@@ -49,7 +50,7 @@
             button7 = new Button();
             tabPage2 = new TabPage();
             dataGridView1 = new DataGridView();
-            textBox3 = new TextBox();
+            button9 = new Button();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -311,6 +312,14 @@
             groupBox4.TabStop = false;
             groupBox4.Text = "Node";
             // 
+            // textBox3
+            // 
+            textBox3.Location = new Point(82, 78);
+            textBox3.Name = "textBox3";
+            textBox3.ReadOnly = true;
+            textBox3.Size = new Size(150, 23);
+            textBox3.TabIndex = 7;
+            // 
             // label3
             // 
             label3.AutoSize = true;
@@ -404,6 +413,7 @@
             // tabPage2
             // 
             tabPage2.BackColor = SystemColors.ActiveCaption;
+            tabPage2.Controls.Add(button9);
             tabPage2.Controls.Add(dataGridView1);
             tabPage2.Location = new Point(4, 24);
             tabPage2.Name = "tabPage2";
@@ -421,13 +431,14 @@
             dataGridView1.Size = new Size(246, 200);
             dataGridView1.TabIndex = 0;
             // 
-            // textBox3
+            // button9
             // 
-            textBox3.Location = new Point(82, 78);
-            textBox3.Name = "textBox3";
-            textBox3.ReadOnly = true;
-            textBox3.Size = new Size(150, 23);
-            textBox3.TabIndex = 7;
+            button9.Location = new Point(3, 209);
+            button9.Name = "button9";
+            button9.Size = new Size(246, 35);
+            button9.TabIndex = 1;
+            button9.Text = "Refresh";
+            button9.UseVisualStyleBackColor = true;
             // 
             // MainAppForm
             // 
@@ -500,5 +511,6 @@
         private Label label2;
         private TextBox textBox2;
         private TextBox textBox3;
+        private Button button9;
     }
 }

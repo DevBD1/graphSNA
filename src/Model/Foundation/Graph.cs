@@ -44,8 +44,7 @@ namespace graphSNA.Model.Foundation
         {
             if (nodeToRemove == null) return;
 
-            // 1. Önce bu düğüme bağlı tüm kenarları temizle
-            // (Tersten döngü kuruyoruz ki liste bozulmasın)
+            // 1. Bu düğüme bağlı kenarları temizle (Tersten döngü ile)
             for (int i = Edges.Count - 1; i >= 0; i--)
             {
                 Edge e = Edges[i];
@@ -55,7 +54,7 @@ namespace graphSNA.Model.Foundation
                 }
             }
 
-            // 2. Düğümü listeden çıkar
+            // 2. Düğümü sil
             Nodes.Remove(nodeToRemove);
         }
 
@@ -64,9 +63,17 @@ namespace graphSNA.Model.Foundation
         /// </summary>
         public void RemoveEdge(Node n1, Node n2)
         {
-            Edge edgeToRemove = Edges.FirstOrDefault(e =>
-                (e.Source == n1 && e.Target == n2) ||
-                (e.Source == n2 && e.Target == n1));
+            Edge edgeToRemove = null;
+
+            // Yönsüz olduğu için iki türlü de kontrol ediyoruz
+            foreach (var e in Edges)
+            {
+                if ((e.Source == n1 && e.Target == n2) || (e.Source == n2 && e.Target == n1))
+                {
+                    edgeToRemove = e;
+                    break;
+                }
+            }
 
             if (edgeToRemove != null)
             {
