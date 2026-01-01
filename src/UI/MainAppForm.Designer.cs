@@ -200,7 +200,7 @@
             btnFindShortestPath.TabIndex = 5;
             btnFindShortestPath.Text = "Find Shortest Path";
             btnFindShortestPath.UseVisualStyleBackColor = true;
-            btnFindShortestPath.Click += btnFindShortestPath_Click;
+            btnFindShortestPath.Click += RunFindShortestPath;
             // 
             // txtCost
             // 

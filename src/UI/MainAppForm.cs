@@ -16,6 +16,10 @@ namespace graphSNA.UI
         Node endNodeForPathFinding = null;
         bool isSelectingNodesForPathFinding = false;
         bool isSelectingForTraversal = false;
+        private ContextMenuStrip graphContextMenu; // Sağ tık menüsü
+        private Point lastRightClickPoint; // Tıklanan yerin koordinatı
+        private Point _rightMouseDownLocation; // Sağ tıkın başladığı yer: sag tik ile pan ve menu olaylarini ayirmak icin
+
 
         // Visual settings
         private const int NodeRadius = 8;
@@ -25,8 +29,8 @@ namespace graphSNA.UI
         private float zoomFactor = 1.0f;
         private float panOffsetX = 0.0f;
         private float panOffsetY = 0.0f;
-        private bool isPanning = false;
-        private Point lastMousePosition;
+        private Point panStartPoint;           // Pan işleminin başladığı nokta
+        private bool isPanning = false;        // Şu an kaydırma yapıyor muyuz?
         // ----------------------------
 
         public MainAppForm()
@@ -46,19 +50,21 @@ namespace graphSNA.UI
             UpdateStyles();
 
             // --- WIRE UP MOUSE EVENTS FOR PAN & ZOOM ---
-            this.panel1.MouseWheel += GraphCanvas_MouseWheel;
-            this.panel1.MouseDown += GraphCanvas_MouseDown;
-            this.panel1.MouseMove += GraphCanvas_MouseMove;
-            this.panel1.MouseUp += GraphCanvas_MouseUp;
+            this.panel1.MouseWheel += Canvas_MouseWheel;
+            this.panel1.MouseDown += Canvas_MouseDown;
+            this.panel1.MouseMove += Canvas_MouseMove;
+            this.panel1.MouseUp += Canvas_MouseUp;
             // Focus panel on enter so wheel works immediately
             this.panel1.MouseEnter += (s, e) => panel1.Focus();
 
             // Calls localization method (stub at bottom if missing)
             UpdateUITexts();
+
+            InitializeContextMenu();
         }
 
         // --- ZOOM LOGIC ---
-        private void GraphCanvas_MouseWheel(object sender, MouseEventArgs e)
+        private void Canvas_MouseWheel(object sender, MouseEventArgs e)
         {
             if (e.Delta > 0) zoomFactor *= 1.1f;
             else zoomFactor /= 1.1f;
@@ -69,45 +75,7 @@ namespace graphSNA.UI
 
             panel1.Invalidate();
         }
-
-        // --- PANNING LOGIC (DRAG TO MOVE) ---
-        private void GraphCanvas_MouseDown(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                isPanning = true;
-                lastMousePosition = e.Location;
-                Cursor = Cursors.SizeAll; // Visual feedback
-            }
-        }
-
-        private void GraphCanvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (isPanning)
-            {
-                // Calculate how much the mouse moved
-                float deltaX = e.X - lastMousePosition.X;
-                float deltaY = e.Y - lastMousePosition.Y;
-
-                // Update the pan offset
-                panOffsetX += deltaX;
-                panOffsetY += deltaY;
-
-                lastMousePosition = e.Location;
-                panel1.Invalidate(); // Redraw with new position
-            }
-        }
-
-        private void GraphCanvas_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (e.Button == MouseButtons.Right)
-            {
-                isPanning = false;
-                Cursor = Cursors.Default;
-            }
-        }
-
-        private void GraphCanvas_Paint(object sender, PaintEventArgs e)
+        private void Canvas_Paint(object sender, PaintEventArgs e)
         {
             Graph graphToDraw = controller.ActiveGraph;
             if (graphToDraw == null) return;
@@ -164,55 +132,153 @@ namespace graphSNA.UI
                 g.DrawString(node.Name, font, Brushes.Black, node.Location.X - 5, node.Location.Y - 15);
             }
         }
-
-        private void PnlGraph_MouseClick(object sender, MouseEventArgs e)
+        private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            // Don't trigger click logic if we just finished panning
-            if (isPanning) return;
+            if (isPanning)
+            {
+                // Calculate how much the mouse moved
+                float deltaX = e.X - panStartPoint.X;
+                float deltaY = e.Y - panStartPoint.Y;
 
-            // --- COORDINATE CONVERSION (SCREEN -> WORLD) ---
-            // Formula: World = (Screen - PanOffset) / ZoomFactor
+                // Update the pan offset
+                panOffsetX += deltaX;
+                panOffsetY += deltaY;
+
+                panStartPoint = e.Location;
+                panel1.Invalidate(); // Redraw with new position
+            }
+        }
+        private void Canvas_MouseClick(object sender, MouseEventArgs e)
+        {
+            // Eğer az önce Pan yaptıysak veya CTRL basılıysa MENÜ AÇMA!
+            if (isPanning || Control.ModifierKeys == Keys.Control) return;
+
+            // --- KOORDİNAT HESAPLARI ---
             float worldX = (e.X - panOffsetX) / zoomFactor;
             float worldY = (e.Y - panOffsetY) / zoomFactor;
             Point worldPoint = new Point((int)worldX, (int)worldY);
 
             Node clickedNode = controller.FindNodeAtPoint(worldPoint, NodeRadius);
 
-            if (isSelectingNodesForPathFinding)
+            // --- SAĞ TIK (Context Menu) ---
+            if (e.Button == MouseButtons.Right)
             {
-                HandleShortestPathSelection(clickedNode);
-            }
-            else if (isSelectingForTraversal)
-            {
-                if (clickedNode != null)
+
+                lastRightClickPoint = worldPoint; // Yeni düğüm eklenecekse buraya eklensin
+                // Sağ tık da bir seçimdir ama "Görsel Seçim" yapmasın, sadece menüyü hazırlasın
+                // İstersen sağ tıkla seçimi kaldırmak için: selectedNode = clickedNode; satırını silebilirsin.
+                // Ama genelde sağ tıklanan öğe üzerinde işlem yapılır:
+                selectedNode = clickedNode;
+
+                // Menü Öğelerini Ayarla
+                if (selectedNode == null)
                 {
-                    selectedNode = clickedNode;
-                    panel1.Invalidate();
-                    RunTraversalAlgorithm(clickedNode);
-                    isSelectingForTraversal = false;
-                }
-            }
-            else
-            {
-                if (clickedNode != null)
-                {
-                    selectedNode = clickedNode;
-                    ShowNodeDetails(selectedNode);
+                    graphContextMenu.Items[0].Visible = true;  // Ekle
+                    graphContextMenu.Items[1].Visible = false; // Sil
+                    graphContextMenu.Items[2].Visible = false; // Düzenle
                 }
                 else
                 {
-                    selectedNode = null;
-                    ClearNodeDetails();
+                    graphContextMenu.Items[0].Visible = false;
+                    graphContextMenu.Items[1].Visible = true;
+                    graphContextMenu.Items[2].Visible = true;
                 }
-                panel1.Invalidate();
+
+                graphContextMenu.Show(panel1, e.Location);
+                return;
+            }
+
+            // =================================================================
+            // 🖱️ SOL TIKLAMA (Sadece Seçim ve Panel Güncelleme)
+            // =================================================================
+            if (e.Button == MouseButtons.Left)
+            {
+                // 1. Yol Bulma Modu mu?
+                if (isSelectingNodesForPathFinding)
+                {
+                    HandleShortestPathSelection(clickedNode);
+                }
+                // 2. Gezinti (Traversal) Modu mu?
+                else if (isSelectingForTraversal)
+                {
+                    if (clickedNode != null)
+                    {
+                        selectedNode = clickedNode;
+                        panel1.Invalidate();
+                        RunTraversalAlgorithm(clickedNode);
+                        isSelectingForTraversal = false;
+                    }
+                }
+                // 3. Normal Seçim Modu
+                else
+                {
+                    selectedNode = clickedNode; // Tıklananı seç (veya boşluğu)
+
+                    if (selectedNode != null)
+                    {
+                        // ARTIK MESSAGEBOX YOK! Paneli güncelle.
+                        UpdateNodeInfoPanel(selectedNode);
+                    }
+                    else
+                    {
+                        // Boşluğa tıklandı -> Paneli temizle
+                        ClearNodeInfoPanel();
+                    }
+
+                    panel1.Invalidate(); // Seçim rengini (Sarı) güncellemek için çiz
+                }
             }
         }
+        private void Canvas_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (isPanning)
+            {
+                isPanning = false;
+                panel1.Cursor = Cursors.Default; // İmleci normale döndür
+            }
+        }
+        private void Canvas_MouseDown(object sender, MouseEventArgs e)
+        {
+            // 1. PAN BAŞLATMA (CTRL + SAĞ TIK)
+            if ((e.Button == MouseButtons.Right || e.Button == MouseButtons.Left) && Control.ModifierKeys == Keys.Control)
+            {
+                isPanning = true;
+                panStartPoint = e.Location; // Farenin ilk bastığı yer
+                panel1.Cursor = Cursors.SizeAll; // Visual feedback
+            }
 
+            // 2. SAĞ TIK MENÜ HAZIRLIĞI (SADECE SAĞ TIK)
+            else if (e.Button == MouseButtons.Right)
+            {
+                // CTRL basılı değilse, bu bir menü açma isteğidir.
+                // Konumu kaydedelim (MouseClick'te kullanacağız)
+                _rightMouseDownLocation = e.Location;
+            }
+        }
         private void ShowNodeDetails(Node node)
         {
             MessageBox.Show($"Name: {node.Name}\nActivity: {node.Activity}\nInteraction: {node.Interaction}", "Node Details");
         }
-
         private void ClearNodeDetails() { }
+        // Seçili düğümün bilgilerini sağ panele yazar
+        private void UpdateNodeInfoPanel(Node node)
+        {
+            // TextBox isimlerini kendi projenizdekilerle eşleştirin
+            textBox1.Text = node.Name;
+            textBox2.Text = node.Activity.ToString();
+            textBox3.Text = node.Interaction.ToString();
+
+            // Sil ve Düzenle butonlarını aktif et
+            // btnDeleteNode.Enabled = true; (Eğer butonlarınız varsa)
+            // btnEditNode.Enabled = true;
+        }
+
+        // Paneli temizler (Boşluğa tıklayınca)
+        private void ClearNodeInfoPanel()
+        {
+            textBox1.Text = "";
+            textBox2.Text = "";
+            textBox3.Text = "";
+        }
     }
 }

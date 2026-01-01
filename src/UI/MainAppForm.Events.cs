@@ -9,7 +9,7 @@ using graphSNA.Model.Foundation;
 namespace graphSNA.UI
 {
     /// <summary>
-    ///  Handles Event Wiring and Button Click Logic
+    ///  Handles Event Wiring and Button & Click Logic
     /// </summary>
     public partial class MainAppForm
     {
@@ -20,16 +20,20 @@ namespace graphSNA.UI
             this.button2.Click += ExportCSV;
 
             // Canvas interactions
-            this.panel1.Paint += GraphCanvas_Paint;
-            this.panel1.MouseClick += PnlGraph_MouseClick;
+            this.panel1.Paint += Canvas_Paint;
+            this.panel1.MouseMove += Canvas_MouseMove;
+            this.panel1.MouseClick += Canvas_MouseClick;
+            this.panel1.MouseUp += Canvas_MouseUp;
+            this.panel1.MouseDown += Canvas_MouseDown;
 
             // Algorithm triggers
-            this.btnFindShortestPath.Click += btnFindShortestPath_Click;
-            this.btnTraverse.Click += btnTraverse_Click;
-            this.btnColoring.Click += btnColoring_Click;
+            this.btnFindShortestPath.Click += RunFindShortestPath;
+            this.btnTraverse.Click += RunTraverse;
+            this.btnColoring.Click += RunColoring;
 
             // Tab Page Change Event (For updating Statistics)
-            this.tabControl1.SelectedIndexChanged += TabControl1_SelectedIndexChanged;
+            this.tabControl1.SelectedIndexChanged += TabSelectedIndexChanged;
+
         }
 
         // --- 1. FILE OPERATIONS ---
@@ -54,7 +58,6 @@ namespace graphSNA.UI
                 }
             }
         }
-
         private void ExportCSV(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog { Filter = "CSV Files|*.csv" };
@@ -66,7 +69,7 @@ namespace graphSNA.UI
         }
 
         // --- 2. SHORTEST PATH LOGIC ---
-        private void btnFindShortestPath_Click(object sender, EventArgs e)
+        private void RunFindShortestPath(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 2)
             {
@@ -81,7 +84,6 @@ namespace graphSNA.UI
 
             MessageBox.Show("Please select the START node from the graph.", "Step 1");
         }
-
         private void HandleShortestPathSelection(Node clickedNode)
         {
             if (startNodeForPathFinding == null)
@@ -108,7 +110,6 @@ namespace graphSNA.UI
             }
             panel1.Invalidate();
         }
-
         private void RunShortestPathAlgorithm()
         {
             string algoType = radioAstar.Checked ? "A*" : "Dijkstra";
@@ -127,9 +128,9 @@ namespace graphSNA.UI
             }
             panel1.Invalidate();
         }
-
+        
         // --- 3. TRAVERSAL (BFS/DFS) LOGIC ---
-        private void btnTraverse_Click(object sender, EventArgs e)
+        private void RunTraverse(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 1)
             {
@@ -142,7 +143,6 @@ namespace graphSNA.UI
 
             MessageBox.Show("Click on a START node to begin traversal.", "Traversal Mode");
         }
-
         private void RunTraversalAlgorithm(Node startNode)
         {
             string algo = radioDFS.Checked ? "DFS" : "BFS";
@@ -160,9 +160,9 @@ namespace graphSNA.UI
                 MessageBox.Show(sb.ToString(), "Traversal Result");
             }
         }
-
+        
         // --- 4. WELSH-POWELL COLORING ---
-        private void btnColoring_Click(object sender, EventArgs e)
+        private void RunColoring(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
             {
@@ -177,7 +177,7 @@ namespace graphSNA.UI
         }
 
         // --- 5. STATISTICS (DEGREE CENTRALITY) ---
-        private void TabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        private void TabSelectedIndexChanged(object sender, EventArgs e)
         {
             // Update table only when 'Stats' tab is active
             if (tabControl1.SelectedIndex == 1)
@@ -185,7 +185,6 @@ namespace graphSNA.UI
                 UpdateStatsTable();
             }
         }
-
         private void UpdateStatsTable()
         {
             if (controller.ActiveGraph == null) return;
@@ -210,6 +209,48 @@ namespace graphSNA.UI
             }
 
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        }
+        
+        // --- 6. CONTEXT MENU (RIGHT-CLICK) ---
+        private void InitializeContextMenu()
+        {
+            graphContextMenu = new ContextMenuStrip();
+
+            // Menü Şıkları
+            var itemAdd = new ToolStripMenuItem("Yeni Kişi Ekle");
+            var itemDelete = new ToolStripMenuItem("Sil");
+            var itemEdit = new ToolStripMenuItem("Düzenle (Özellikler)");
+
+            // Tıklama Olayları
+            itemAdd.Click += (s, e) => {
+                // Basitçe rastgele isimle ekleyelim (İleride InputBox yaparız)
+                string name = "User_" + new Random().Next(100, 999);
+                controller.AddNode(name, 0.5f, 50, 0, lastRightClickPoint);
+                panel1.Invalidate();
+            };
+
+            itemDelete.Click += (s, e) => {
+                if (selectedNode != null)
+                {
+                    controller.RemoveNode(selectedNode);
+                    selectedNode = null; // Seçimi kaldır
+                    panel1.Invalidate();
+                }
+            };
+
+            itemEdit.Click += (s, e) => {
+                if (selectedNode != null)
+                {
+                    // Detayları gösterip düzenlemeye izin verebiliriz
+                    // Şimdilik sadece bilgi gösterelim, istersen buraya güncelleme formunu bağlarız
+                    MessageBox.Show($"Düzenlenecek: {selectedNode.Name}\nŞu anlık özellik güncelleme için InputForm yapmamız gerek.", "Bilgi");
+                }
+            };
+
+            // Menüye Ekleme
+            graphContextMenu.Items.Add(itemAdd);
+            graphContextMenu.Items.Add(itemDelete);
+            graphContextMenu.Items.Add(itemEdit);
         }
     }
 }
