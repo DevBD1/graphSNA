@@ -20,100 +20,105 @@ namespace graphSNA.Model.Foundation
             AreaWidth = width;
             AreaHeight = height;
 
-            // İdeal mesafe: Alanın büyüklüğüne ve düğüm sayısına göre belirlenir
+            // Merkez Noktası (Yerçekimi için)
+            float centerX = width / 2f;
+            float centerY = height / 2f;
+
+            // İdeal yay uzunluğu (Formülü koruyoruz)
             double area = width * height;
             k = Math.Sqrt(area / (graph.Nodes.Count + 1));
 
-            // Hareket Vektörleri (dx, dy)
+            // Başlangıç sıcaklığı (Simulated Annealing)
+            double temperature = width / 10.0;
+
             Dictionary<Node, PointF> displacements = new Dictionary<Node, PointF>();
 
-            // --- FİZİK DÖNGÜSÜ ---
             for (int i = 0; i < iterations; i++)
             {
-                // 1. İTME KUVVETLERİ (Her düğüm diğerini iter)
+                // 1. İTME KUVVETLERİ (Repulsion)
                 foreach (var v in graph.Nodes)
                 {
-                    displacements[v] = PointF.Empty; // Sıfırla
-
+                    displacements[v] = PointF.Empty;
                     foreach (var u in graph.Nodes)
                     {
                         if (v == u) continue;
-
-                        // Mesafe vektörü
                         double dx = v.Location.X - u.Location.X;
                         double dy = v.Location.Y - u.Location.Y;
                         double dist = Math.Sqrt(dx * dx + dy * dy);
+                        if (dist < 0.1) dist = 0.1;
 
-                        if (dist < 0.1) dist = 0.1; // Sıfıra bölünme hatasını önle
-
-                        // İtme Formülü: Fr = k^2 / dist
-                        double force = k * k / dist;
-
-                        // Kuvveti uygula
-                        float dispX = (float)(dx / dist * force);
-                        float dispY = (float)(dy / dist * force);
-
+                        double force = (k * k) / dist;
                         displacements[v] = new PointF(
-                            displacements[v].X + dispX,
-                            displacements[v].Y + dispY
+                            displacements[v].X + (float)(dx / dist * force),
+                            displacements[v].Y + (float)(dy / dist * force)
                         );
                     }
                 }
 
-                // 2. ÇEKME KUVVETLERİ (Sadece bağlı olanlar çeker)
+                // 2. ÇEKME KUVVETLERİ (Attraction - Yaylar)
                 foreach (var edge in graph.Edges)
                 {
                     Node v = edge.Source;
                     Node u = edge.Target;
-
                     double dx = v.Location.X - u.Location.X;
                     double dy = v.Location.Y - u.Location.Y;
                     double dist = Math.Sqrt(dx * dx + dy * dy);
-
                     if (dist < 0.1) dist = 0.1;
 
-                    // Çekme Formülü: Fa = dist^2 / k
-                    double force = dist * dist / k;
-
+                    double force = (dist * dist) / k;
                     float dispX = (float)(dx / dist * force);
                     float dispY = (float)(dy / dist * force);
 
-                    // Kaynak düğüm hedefe çekilir (Eksi)
-                    displacements[v] = new PointF(
-                        displacements[v].X - dispX,
-                        displacements[v].Y - dispY
-                    );
-
-                    // Hedef düğüm kaynağa çekilir (Artı)
-                    displacements[u] = new PointF(
-                        displacements[u].X + dispX,
-                        displacements[u].Y + dispY
-                    );
+                    displacements[v] = new PointF(displacements[v].X - dispX, displacements[v].Y - dispY);
+                    displacements[u] = new PointF(displacements[u].X + dispX, displacements[u].Y + dispY);
                 }
 
-                // 3. KONUMLARI GÜNCELLE
+                // --- 3. YERÇEKİMİ (GRAVITY) - YENİ ---
+                // Düğümlerin sonsuza dağılmasını engellemek için merkeze hafif çekim
+                foreach (var v in graph.Nodes)
+                {
+                    double dx = centerX - v.Location.X;
+                    double dy = centerY - v.Location.Y;
+                    double dist = Math.Sqrt(dx * dx + dy * dy);
+
+                    // Gravity gücü (Düğüm sayısı arttıkça artmalı ki dağılmasın)
+                    double gravityForce = 0.05 * k;
+
+                    if (dist > 0)
+                    {
+                        displacements[v] = new PointF(
+                            displacements[v].X + (float)(dx / dist * gravityForce),
+                            displacements[v].Y + (float)(dy / dist * gravityForce)
+                        );
+                    }
+                }
+
+                // 4. KONUMLARI GÜNCELLE (Sınırlandırma İptal!)
                 foreach (var v in graph.Nodes)
                 {
                     PointF disp = displacements[v];
-
-                    // Hareketi uygula (Sıcaklık/Azalma faktörü eklenebilir ama şimdilik direkt uyguluyoruz)
-                    // Hız sınırlaması (Çok uzağa fırlamasınlar)
                     double length = Math.Sqrt(disp.X * disp.X + disp.Y * disp.Y);
-                    if (length > 100) // Maksimum hız
+
+                    if (length > 0)
                     {
-                        disp.X = (float)(disp.X / length * 100);
-                        disp.Y = (float)(disp.Y / length * 100);
+                        // Hareketi sıcaklıkla kısıtla
+                        double limitedLength = Math.Min(length, temperature);
+
+                        disp.X = (float)(disp.X / length * limitedLength);
+                        disp.Y = (float)(disp.Y / length * limitedLength);
+
+                        // --- DUVARLARI YIKTIK ---
+                        // Artık Math.Max/Min yok. Koordinatlar eksiye veya width'in ötesine geçebilir.
+                        // Zoom/Pan sistemimiz olduğu için bu sorun değil, aksine daha doğal durur.
+                        int newX = (int)(v.Location.X + disp.X);
+                        int newY = (int)(v.Location.Y + disp.Y);
+
+                        v.Location = new Point(newX, newY);
                     }
-
-                    int newX = (int)(v.Location.X + disp.X);
-                    int newY = (int)(v.Location.Y + disp.Y);
-
-                    // Sınırların dışına çıkmayı engelle
-                    newX = Math.Max(NodeSize, Math.Min(AreaWidth - NodeSize, newX));
-                    newY = Math.Max(NodeSize, Math.Min(AreaHeight - NodeSize, newY));
-
-                    v.Location = new Point(newX, newY);
                 }
+
+                // Soğutma
+                temperature *= 0.95;
             }
         }
 

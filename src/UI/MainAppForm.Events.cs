@@ -52,6 +52,44 @@ namespace graphSNA.UI
                     //Distributes nodes across the screen randomly and uniformly
                     controller.ApplyForceLayout(panel1.Width, panel1.Height);
 
+                    //// Layout bittikten hemen sonra:
+                    // 1. Sanal Genişliği Hesapla
+                    int nodeCount = controller.ActiveGraph.Nodes.Count;
+                    // Min 800px olsun, yoksa çok küçük graflar ezilmesin.
+                    int virtualWidth = Math.Max(800, nodeCount * 50);
+                    int virtualHeight = Math.Max(600, nodeCount * 50);
+
+                    // 2. Fizik Motorunu Çalıştır
+                    controller.ApplyForceLayout(virtualWidth, virtualHeight);
+
+                    // --- 3. AKILLI ORTALAMA VE SIĞDIRMA (FIX) ---
+
+                    // Grafiğin sanal merkezi (World Coordinates)
+                    float graphCenterX = virtualWidth / 2.0f;
+                    float graphCenterY = virtualHeight / 2.0f;
+
+                    // Panelin merkezi (Screen Coordinates)
+                    float panelCenterX = panel1.Width / 2.0f;
+                    float panelCenterY = panel1.Height / 2.0f;
+
+                    // Ekrana sığması için gereken Zoom oranını bul
+                    float scaleX = (float)panel1.Width / virtualWidth;
+                    float scaleY = (float)panel1.Height / virtualHeight;
+
+                    // En kısıtlı kenara göre zoom yap (Kenarlardan %10 boşluk bırak: 0.9f)
+                    zoomFactor = Math.Min(scaleX, scaleY) * 0.9f;
+
+                    // Çok küçük dosyalarda devasa zoom yapmasın (Max Zoom 1.0 olsun)
+                    if (zoomFactor > 1.0f) zoomFactor = 1.0f;
+                    // Çok da küçülmesin (Min Zoom 0.1)
+                    if (zoomFactor < 0.1f) zoomFactor = 0.1f;
+
+                    // Pan (Kaydırma) Değerini Hesapla:
+                    // Formül: HedefEkran = (Dünya * Zoom) + Pan
+                    // Pan = HedefEkran - (Dünya * Zoom)
+                    panOffsetX = panelCenterX - (graphCenterX * zoomFactor);
+                    panOffsetY = panelCenterY - (graphCenterY * zoomFactor);
+
                     panel1.Invalidate();
                     MessageBox.Show(Properties.Resources.Msg_Success);
                 }
@@ -323,7 +361,12 @@ namespace graphSNA.UI
 
             // 1. Fizik motorunu çalıştır (100 iterasyon boyunca en iyi konumu arar)
             // Panel boyutlarını veriyoruz ki dışarı taşmasınlar.
-            controller.ApplyForceLayout(panel1.Width, panel1.Height);
+            // Düğüm sayısına göre alan belirle (Min 1000px, her düğüm için ekstra alan)
+            int nodeCount = controller.ActiveGraph.Nodes.Count;
+            int virtualWidth = Math.Max(panel1.Width, nodeCount * 50);  // Düğüm başına 50px alan
+            int virtualHeight = Math.Max(panel1.Height, nodeCount * 50);
+
+            controller.ApplyForceLayout(virtualWidth, virtualHeight);
 
             // 2. Yeni koordinatlara göre ekranı tekrar çiz
             panel1.Invalidate();

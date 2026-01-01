@@ -49,8 +49,8 @@
             button8 = new Button();
             button7 = new Button();
             tabPage2 = new TabPage();
-            dataGridView1 = new DataGridView();
             button9 = new Button();
+            dataGridView1 = new DataGridView();
             ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
             splitContainer1.Panel1.SuspendLayout();
             splitContainer1.Panel2.SuspendLayout();
@@ -158,7 +158,7 @@
             button3.Name = "button3";
             button3.Size = new Size(111, 23);
             button3.TabIndex = 2;
-            button3.Text = "Force-Directed";
+            button3.Text = "Refresh Layout";
             button3.UseVisualStyleBackColor = false;
             // 
             // button2
@@ -422,15 +422,6 @@
             tabPage2.TabIndex = 1;
             tabPage2.Text = "Stats";
             // 
-            // dataGridView1
-            // 
-            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView1.Dock = DockStyle.Top;
-            dataGridView1.Location = new Point(3, 3);
-            dataGridView1.Name = "dataGridView1";
-            dataGridView1.Size = new Size(246, 200);
-            dataGridView1.TabIndex = 0;
-            // 
             // button9
             // 
             button9.Location = new Point(3, 209);
@@ -439,6 +430,15 @@
             button9.TabIndex = 1;
             button9.Text = "Refresh";
             button9.UseVisualStyleBackColor = true;
+            // 
+            // dataGridView1
+            // 
+            dataGridView1.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView1.Dock = DockStyle.Top;
+            dataGridView1.Location = new Point(3, 3);
+            dataGridView1.Name = "dataGridView1";
+            dataGridView1.Size = new Size(246, 200);
+            dataGridView1.TabIndex = 0;
             // 
             // MainAppForm
             // 
