@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace graphSNA.UI
 {
     /// <summary>
-    ///  The bridge between Form and Data (Graph).
+    /// The bridge between Form and Data (Graph).
     /// </summary>
     public class GraphController
     {
@@ -26,13 +26,13 @@ namespace graphSNA.UI
         {
             if (ActiveGraph == null) ActiveGraph = new Graph();
 
-            // 1. Yeni ID Üretme Mantığı (Auto-Increment)
-            int newId = 1; // Eğer hiç düğüm yoksa 1'den başla
+            // 1. New ID Generation Logic (Auto-Increment)
+            int newId = 1; // Start from 1 if there are no nodes
 
             if (ActiveGraph.Nodes.Count > 0)
             {
-                // Mevcut ID'leri sayıya çevirmeyi dene (TryParse), başaramazsan 0 say.
-                // Böylece 101, 102 gibi sayıları bulup en büyüğünü alacağız.
+                // Try to parse existing IDs to integers, default to 0 if fails.
+                // This allows finding the maximum numeric ID (e.g., 101, 102).
                 int maxId = ActiveGraph.Nodes
                     .Select(n => int.TryParse(n.Id, out int val) ? val : 0)
                     .Max();
@@ -41,15 +41,15 @@ namespace graphSNA.UI
             }
 
             // string randomId = Guid.NewGuid().ToString().Substring(0, 8);
-            // 2. Düğümü Yeni ID ile Oluştur
-            // Node constructor'ın parametre sırası: (Id, Name, Activity, Interaction)
+            // 2. Create Node with the new ID
+            // Node constructor parameter order: (Id, Name, Activity, Interaction)
             Node newNode = new Node(newId.ToString(), name, act, inter);
 
             newNode.ConnectionCount = conn;
             newNode.Location = loc;
 
             ActiveGraph.AddNode(newNode);
-            return newNode; // Eklenen düğümü geri döndür (lazım olabilir)
+            return newNode; // Return the added node (may be needed elsewhere)
         }
         public void RemoveNode(Node node)
         {
@@ -60,56 +60,71 @@ namespace graphSNA.UI
             node.Name = newName;
             node.Activity = act;
             node.Interaction = inter;
+
+            // Recalculate weights for all connected edges since properties changed
+            foreach (var edge in ActiveGraph.Edges)
+            {
+                if (edge.Source == node || edge.Target == node)
+                {
+                    edge.CalculateWeight();
+                }
+            }
+        }
+
+        // Returns all disconnected sub-graphs (islands) in the network
+        public List<List<Node>> GetConnectedComponents()
+        {
+            return ConnectedComponents.FindComponents(ActiveGraph);
         }
 
         public void RemoveEdge(Node n1, Node n2)
         {
             ActiveGraph.RemoveEdge(n1, n2);
-            // Sayacı düşürmek istersen:
+            // Optional: Decrement connection counters if needed:
             // n1.ConnectionCount--; n2.ConnectionCount--;
         }
         public bool AddEdge(Node source, Node target)
         {
-            // 1. Kendine bağlanmayı önle
+            // 1. Prevent self-loops
             if (source == target) return false;
 
-            // 2. Zaten var mı kontrolü (Yönsüz graf mantığı)
+            // 2. Check if edge already exists (Undirected graph logic)
             bool exists = ActiveGraph.Edges.Any(e =>
                 (e.Source == source && e.Target == target) ||
                 (e.Source == target && e.Target == source));
 
-            // 3. Eğer yoksa ekle ve 'true' döndür
+            // 3. Add if it doesn't exist and return true
             if (!exists)
             {
                 ActiveGraph.AddEdge(source, target);
 
-                // İsteğe bağlı sayaç güncelleme
+                // Optional: Update connection counts
                 // source.ConnectionCount++;
                 // target.ConnectionCount++;
 
-                return true; // BAŞARILI
+                return true; // SUCCESS
             }
 
-            return false; // ZATEN VAR, BAŞARISIZ
+            return false; // ALREADY EXISTS, FAILURE
         }
-        // Dosya Kaydetme İşi
+        // File Saving Operations
         public void SaveGraph(string filePath)
         {
-            // FileManager'ın public ve static olduğundan emin olun
+            // Ensure FileManager is public and static
             FileManager.SaveGraph(ActiveGraph, filePath);
         }
 
-        // Dosya Yükleme İşi
+        // File Loading Operations
         public void LoadGraph(string filePath)
         {
-            // Yeni grafı yükle ve aktif graf olarak ata
+            // Load new graph and assign as ActiveGraph
             ActiveGraph = FileManager.LoadGraph(filePath);
             //RecalculateAllWeights();
         }
         public void ApplyForceLayout(int width, int height)
         {
             Layout layout = new Layout();
-            // 100 iterasyon boyunca hesapla ve en son halini kaydet
+            // Calculate and save the state after 100 iterations
             layout.CalculateLayout(ActiveGraph, width, height, 100);
         }
 
@@ -124,7 +139,7 @@ namespace graphSNA.UI
             if (algorithmType == "A*")
                 algorithm = new AStarAlgorithm();
             else
-                algorithm = new DijkstraAlgorithm(); // Varsayılan
+                algorithm = new DijkstraAlgorithm(); // Default
 
             ShortestPathManager manager = new ShortestPathManager(algorithm);
             return manager.Calculate(ActiveGraph, start, end);
@@ -165,28 +180,27 @@ namespace graphSNA.UI
                 .ToList();
         }
         /// <summary>
-        /// Verilen koordinatta (Point p) bir düğüm olup olmadığını kontrol eder.
+        /// Checks if a node exists at the given coordinates (Point p).
         /// </summary>
-        /// <param name="p">Tıklanan Dünya (World) Koordinatı</param>
-        /// <param name="radius">Düğümün Yarıçapı (Genelde NodeRadius = 20)</param>
-        /// <returns>Bulunan Düğüm veya null</returns>
+        /// <param name="p">Clicked World Coordinate</param>
+        /// <param name="radius">Node Radius (Typically NodeRadius = 20)</param>
+        /// <returns>Found Node or null</returns>
         public Node FindNodeAtPoint(Point p, int radius)
         {
-            // Listeyi tersten dönüyoruz ki üst üste binen düğümlerde 
-            // en üsttekini (son çizileni) seçebilelim.
+            // Iterate backwards to select the topmost (last drawn) node in case of overlap.
             for (int i = ActiveGraph.Nodes.Count - 1; i >= 0; i--)
             {
                 Node node = ActiveGraph.Nodes[i];
 
-                // Düğümün görsel merkezi
-                // Not: Location genelde sol-üst köşedir, bu yüzden yarıçap ekliyoruz.
+                // Visual center of the node
+                // Note: Location is usually the top-left corner, so we add the radius.
                 int centerX = node.Location.X + radius;
                 int centerY = node.Location.Y + radius;
 
-                // Pisagor ile mesafe hesabı: ((x1-x2)^2 + (y1-y2)^2) ^ 0.5
+                // Distance calculation using Pythagorean theorem: ((x1-x2)^2 + (y1-y2)^2) ^ 0.5
                 double distance = Math.Sqrt(Math.Pow(p.X - centerX, 2) + Math.Pow(p.Y - centerY, 2));
 
-                // Eğer mesafe yarıçaptan küçük veya eşitse, bu dairenin içindeyiz demektir.
+                // If distance is less than or equal to the radius, we are inside the circle.
                 if (distance <= radius)
                 {
                     return node;
@@ -194,12 +208,12 @@ namespace graphSNA.UI
             }
             return null;
         }
-        // Tıklanan noktaya yakın bir Edge var mı? (Tolerans: 5 piksel)
-        // Sağ tıkla silmek için gerekli!
-        public Edge FindEdgeAtPoint(Point clickPoint, float tolerance = 15f) // 1. Toleransı 5'ten 15'e çıkardık 🎯
+        // Check if there is an Edge near the clicked point (Tolerance: 15 pixels)
+        // Necessary for deletion via right-click!
+        public Edge FindEdgeAtPoint(Point clickPoint, float tolerance = 15f) // 1. Increased tolerance from 5 to 15
         {
             Edge bestMatch = null;
-            double minDistance = double.MaxValue; // En kısa mesafeyi takip et
+            double minDistance = double.MaxValue; // Track the shortest distance
 
             foreach (var edge in ActiveGraph.Edges)
             {
@@ -208,10 +222,10 @@ namespace graphSNA.UI
                 float x2 = edge.Target.Location.X;
                 float y2 = edge.Target.Location.Y;
 
-                // Mesafeyi hesapla
+                // Calculate the distance
                 float distance = GetDistanceToLineSegment(clickPoint.X, clickPoint.Y, x1, y1, x2, y2);
 
-                // 2. Eğer tolerans içindeyse VE şu ana kadar bulduğumuz en yakın kenarsa
+                // 2. If within tolerance AND the closest edge found so far
                 if (distance <= tolerance && distance < minDistance)
                 {
                     minDistance = distance;
@@ -219,9 +233,9 @@ namespace graphSNA.UI
                 }
             }
 
-            return bestMatch; // En yakın kenarı döndür (veya bulamadıysa null)
+            return bestMatch; // Return the closest edge (or null if none found)
         }
-        // Matematiksel Yardımcı: Noktanın Çizgiye Uzaklığı
+        // Mathematical Helper: Distance from a Point to a Line Segment
         private float GetDistanceToLineSegment(float px, float py, float x1, float y1, float x2, float y2)
         {
             float dx = x2 - x1;
