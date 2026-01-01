@@ -24,8 +24,27 @@ namespace graphSNA.UI
         // CRUD Operations for Nodes
         public Node AddNode(string name, float act, float inter, long conn, Point loc)
         {
-            string randomId = Guid.NewGuid().ToString().Substring(0, 8);
-            Node newNode = new Node(randomId, name, act, inter);
+            if (ActiveGraph == null) ActiveGraph = new Graph();
+
+            // 1. Yeni ID Üretme Mantığı (Auto-Increment)
+            int newId = 1; // Eğer hiç düğüm yoksa 1'den başla
+
+            if (ActiveGraph.Nodes.Count > 0)
+            {
+                // Mevcut ID'leri sayıya çevirmeyi dene (TryParse), başaramazsan 0 say.
+                // Böylece 101, 102 gibi sayıları bulup en büyüğünü alacağız.
+                int maxId = ActiveGraph.Nodes
+                    .Select(n => int.TryParse(n.Id, out int val) ? val : 0)
+                    .Max();
+
+                newId = maxId + 1;
+            }
+
+            // string randomId = Guid.NewGuid().ToString().Substring(0, 8);
+            // 2. Düğümü Yeni ID ile Oluştur
+            // Node constructor'ın parametre sırası: (Id, Name, Activity, Interaction)
+            Node newNode = new Node(newId.ToString(), name, act, inter);
+
             newNode.ConnectionCount = conn;
             newNode.Location = loc;
 
