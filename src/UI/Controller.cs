@@ -36,6 +36,25 @@ namespace graphSNA.UI
             ActiveGraph.AddNode(newNode);
         }
 
+        public void RemoveNode(Node node)
+        {
+            ActiveGraph.RemoveNode(node);
+        }
+
+        public void RemoveEdge(Node n1, Node n2)
+        {
+            ActiveGraph.RemoveEdge(n1, n2);
+        }
+
+        // Düğüm güncelleme (İsim veya özellik değiştirme) için
+        public void UpdateNode(Node node, string newName, float act, float inter)
+        {
+            node.Name = newName;
+            node.Activity = act;
+            node.Interaction = inter;
+            // Bağlantı sayısı (ConnectionCount) otomatik hesaplandığı için elle değiştirmiyoruz
+        }
+
         // Dosya Kaydetme İşi
         public void SaveGraph(string filePath)
         {
