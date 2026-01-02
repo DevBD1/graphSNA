@@ -17,7 +17,7 @@ namespace graphSNA.Model.Foundation
             Source = source;
             Target = target;
             Weight = weight;
-            //CalculateWeight(); // Automatically calculate weight upon creation
+            CalculateWeight(); // Automatically calculate weight upon creation
         }
 
         /// <summary>
