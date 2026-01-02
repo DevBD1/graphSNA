@@ -101,6 +101,15 @@ namespace graphSNA.UI
                 ActiveGraph.RemoveEdge(n1, n2);
                 n1.ConnectionCount--;
                 n2.ConnectionCount--;
+
+                // Recalculate weights for all edges connected to n1 and n2
+                foreach (var edge in ActiveGraph.Edges)
+                {
+                    if (edge.Source == n1 || edge.Target == n1 || edge.Source == n2 || edge.Target == n2)
+                    {
+                        edge.CalculateWeight();
+                    }
+                }
             }
         }
         public bool AddEdge(Node source, Node target)
@@ -116,11 +125,20 @@ namespace graphSNA.UI
             // 3. Add if it doesn't exist and return true
             if (!exists)
             {
-                ActiveGraph.AddEdge(source, target);
-
-                // Update connection counts
+                // Update connection counts first so the new edge gets correct weight
                 source.ConnectionCount++;
                 target.ConnectionCount++;
+
+                ActiveGraph.AddEdge(source, target);
+
+                // Recalculate weights for all edges connected to source and target
+                foreach (var edge in ActiveGraph.Edges)
+                {
+                    if (edge.Source == source || edge.Target == source || edge.Source == target || edge.Target == target)
+                    {
+                        edge.CalculateWeight();
+                    }
+                }
 
                 return true; // SUCCESS
             }
