@@ -37,6 +37,7 @@
             btnTraverse = new Button();
             radioBFS = new RadioButton();
             radioDFS = new RadioButton();
+            btnConnectedComponents = new Button();
             groupBox4 = new GroupBox();
             textBox3 = new TextBox();
             label3 = new Label();
@@ -277,11 +278,12 @@
             groupBox3.Controls.Add(btnTraverse);
             groupBox3.Controls.Add(radioBFS);
             groupBox3.Controls.Add(radioDFS);
+            groupBox3.Controls.Add(btnConnectedComponents);
             groupBox3.Location = new Point(6, 540);
             groupBox3.Margin = new Padding(6, 7, 6, 7);
             groupBox3.Name = "groupBox3";
             groupBox3.Padding = new Padding(6, 7, 6, 7);
-            groupBox3.Size = new Size(510, 252);
+            groupBox3.Size = new Size(510, 320);
             groupBox3.TabIndex = 2;
             groupBox3.TabStop = false;
             groupBox3.Text = "Graph Traversal";
@@ -329,6 +331,16 @@
             radioDFS.TabIndex = 8;
             radioDFS.Text = "DFS";
             radioDFS.UseVisualStyleBackColor = true;
+            // 
+            // btnConnectedComponents
+            // 
+            btnConnectedComponents.Location = new Point(11, 243);
+            btnConnectedComponents.Margin = new Padding(6, 7, 6, 7);
+            btnConnectedComponents.Name = "btnConnectedComponents";
+            btnConnectedComponents.Size = new Size(484, 57);
+            btnConnectedComponents.TabIndex = 11;
+            btnConnectedComponents.Text = "Ayrık Bileşenleri Bul";
+            btnConnectedComponents.UseVisualStyleBackColor = true;
             // 
             // groupBox4
             // 
@@ -516,7 +528,7 @@
         private RadioButton radioBFS;
         private RadioButton radioDFS;
         private Button btnTraverse;
-
+        private Button btnConnectedComponents;
         //coloring button
         private Button btnColoring;
         private GroupBox groupBox3;

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Diagnostics;
 using graphSNA.Model.Foundation;
+using graphSNA.Model.Algorithms;
 
 namespace graphSNA.UI
 {
@@ -32,6 +33,7 @@ namespace graphSNA.UI
             this.btnFindShortestPath.Click += RunFindShortestPath;
             this.btnTraverse.Click += RunTraverse;
             this.btnColoring.Click += RunColoring;
+            this.btnConnectedComponents.Click += RunConnectedComponents;
 
             // Updating Statistics
             this.tabControl1.SelectedIndexChanged += TabSelectedIndexChanged;
@@ -585,6 +587,54 @@ namespace graphSNA.UI
                 ClearNodeInfoPanel(); // Clear right panel texts
                 panel1.Invalidate();  // Redraw graph
             }
+        }
+
+        private void RunConnectedComponents(object sender, EventArgs e)
+        {
+            if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
+            {
+                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
+                return;
+            }
+
+            var stopwatch = Stopwatch.StartNew();
+            var components = ConnectedComponents.FindComponents(controller.ActiveGraph);
+            stopwatch.Stop();
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("[BAĞLANTI ANALİZİ]");
+            sb.AppendLine($"Toplam Bileşen Sayısı: {components.Count}");
+            sb.AppendLine();
+
+            if (components.Count == 1)
+            {
+                sb.AppendLine("Graf BAĞLI: TÜM düğümler birbirine ulaşabilir.");
+            }
+            else
+            {
+                sb.AppendLine("Graf PARÇALI: Ayrik topluluklar mevcut!");
+            }
+            sb.AppendLine();
+
+            int index = 1;
+            foreach (var component in components.OrderByDescending(c => c.Count))
+            {
+                string status = component.Count == 1 ? " [IZOLE]" : "";
+                string nodes = string.Join(", ", component.Select(n => n.Name));
+                sb.AppendLine($"Bilesen {index} ({component.Count} dugum){status}:");
+                sb.AppendLine($"  {nodes}");
+                sb.AppendLine();
+                index++;
+            }
+
+            // Performance metrics
+            sb.AppendLine("----------------------------");
+            sb.AppendLine("[PERFORMANS METRIKLERI]");
+            sb.AppendLine($"Islem Suresi: {FormatElapsedTime(stopwatch)}");
+            sb.AppendLine($"Dugum Sayisi: {controller.ActiveGraph.Nodes.Count}");
+            sb.AppendLine($"Kenar Sayisi: {controller.ActiveGraph.Edges.Count}");
+
+            DisplayResult(sb.ToString());
         }
     }
 }
