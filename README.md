@@ -218,161 +218,202 @@ flowchart TD
 - Kaynak: Hart, P. E., et al. "A Formal Basis for the Heuristic Determination of Minimum Cost Paths" (1968), IEEE Transactions on Systems Science and Cybernetics
 
 ---
-##
+### 3.5.1 Connected Components
+Çalışma Mantığı: Bu algoritma, izole edilmiş alt grafikleri tanımlar. Her düğümü tek tek inceler; eğer bir düğüm ziyaret edilmemişse, oradan ulaşılabilir tüm düğümleri bulmak için bir geçiş (BFS/DFS) başlatır ve bunları tek bir "bileşen" halinde gruplandırır.
+
+```mermaid
+flowchart TD
+    A([Start: Input Graph]) --> B[Init Visited Set & Components List]
+    B --> C[Iterate All Nodes]
+    C --> D{Is Node Visited?}
+    D -- Yes --> C
+    D -- No --> E[Start New Component List]
+    E --> F[Run BFS/DFS from Node]
+    F --> G[Mark All Reachable as Visited]
+    G --> H[Add to Current Component List]
+    H --> I[Add Component to Master List]
+    I --> C
+    C -- All Processed --> J([End: Return List of Lists])
+```
+### 3.5.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O(V + E) | Çünkü her düğümü ve kenarı tam olarak bir kez ziyaret eder. |
+
+### 3.5.3 Literatür İncelemesi
+- Ağ analizinin temel unsurlarından biri, ağın dayanıklılığını belirlemektir. Bir ağın 1 bileşeni varsa, tamamen bağlıdır. Birden fazla bileşeni varsa, parçalanmıştır.
 
 ---
-## 4. Sınıflar ve Modüller
-## 4.1 Node.cs 
-Node.cs Sınıfının Sorumlulukları:
-- Veri Modeli: Sosyal ağdaki her bir kullanıcıyı temsil eder.
-- Analiz Verileri: Ağırlık (Weight) formülü için gerekli parametreleri (Activity, Interaction, ConnectionCount) saklar.
-- Görselleştirme: Düğümün tuval üzerindeki Location (X, Y) bilgisini ve Color (Renk) bilgisini tutar.
-- Algoritmik Durum: Graf tarama algoritmaları için Visited (Ziyaret Edildi) durumunu yönetir.
-- Etkileşim: Tıklama olaylarında arayüze detaylı kullanıcı bilgisini sağlar.
+### 3.6.1 Graph Coloring (Welsh-Powell)
+Çalışma Mantığı: Bir grafı, bitişik iki düğümün aynı renge sahip olmaması koşuluyla renklendirmek için kullanılan bir algoritma. Düğümleri bağlantı sayısına (dereceye) göre azalan sırada sıralar. İlk rengi en yüksek dereceli düğüme ve ardından bitişik olmayan tüm düğümlere atar, sonra bir sonraki renge geçer.
+
+```mermaid
+flowchart TD
+    A([Start: Input Graph]) --> B[Calculate Degrees of All Nodes]
+    B --> C[Sort Nodes Descending by Degree]
+    C --> D[Init ColorIndex = 0]
+    D --> E{Are All Nodes Colored?}
+    E -- Yes --> F([End: Return ColorCount])
+    E -- No --> G[Select Uncolored Node with Max Degree]
+    G --> H["Assign Color[ColorIndex]"]
+    H --> I[Iterate Other Uncolored Nodes]
+    I --> J{Is Node Adjacent to ANY Node of Current Color?}
+    J -- No --> K["Assign Color[ColorIndex]"]
+    J -- Yes --> I
+    K --> I
+    I -- List Done --> L[Increment ColorIndex]
+    L --> E
+```
+### 3.6.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O(V^2 + E) | Sıralama ve komşuluk kontrolü nedeniyle |
+
+### 3.6.3 Literatür İncelemesi
+- 1967'de D. J. A. Welsh ve M. B. Powell tarafından önerilmiştir. Bir grafın kromatik sayısı için upper bound sağlar ve zamanlama problemlerinde (örneğin, sınav zamanlaması) ve derleyicilerde register tahsisinde kullanılır.
+
+---
+### 3.7.1 Algoritma Karşılaştırma Tablosu
+| Algoritma | Zaman        | Alan | Ağırlıklı Graf | Optimal Yol    | Kullanım Senaryosu                  |
+|-----------|--------------|------|----------------|----------------|-------------------------------------|
+| BFS       | O(V+E)       | O(V) | ❌              | ✅ (ağırlıksız) | Seviye bazlı keşif, arkadaş önerisi |
+| DFS       | O(V+E)       | O(V) | ❌              | ❌              | Döngü tespiti, topolojik sıralama   |
+| Dijkstra  | O((V+E)logV) | O(V) | ✅              | ✅              | Ağırlıklı en kısa yol               |
+| A*        | O((V+E)logV) | O(V) | ✅              | ✅              | Koordinat bilgisi varsa hızlı yol   |
+
+### 3.7.2 Kaynakça 
+1.	Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2009). Introduction to Algorithms (3rd ed.). MIT Press.
+2.	Dijkstra, E. W. (1959). A note on two problems in connexion with graphs. Numerische Mathematik, 1(1), 269-271.
+3.	Hart, P. E., Nilsson, N. J., & Raphael, B. (1968). A formal basis for the heuristic determination of minimum cost paths. IEEE Transactions on Systems Science and Cybernetics, 4(2), 100-107.
+4.	Tarjan, R. E. (1972). Depth-first search and linear graph algorithms. SIAM Journal on Computing, 1(2), 146-160.
+5.	Moore, E. F. (1959). The shortest path through a maze. Proceedings of the International Symposium on the Theory of Switching, 285-292.
+
+---
+## 4. Sınıflar 
 
 ```mermaid
 classDiagram
-    class Node {
-        %% --- Veri Özellikleri (Properties) ---
-        +string Name
-        +double Activity
-        +double Interaction
-        +double ConnectionCount
-        +bool Visited
-        
-        %% --- Görsel Özellikler (Visual Properties) ---
-        +Point Location
-        +Color DrawColor
-        
-        %% --- İş Mantığı (Methods) ---
-        +Node(name, props...)
-        +ToString()
+    %% Relationships - Core Architecture
+    MainAppForm --> Controller : Uses
+    InputNodeForm <-- MainAppForm : Instantiates
+    Controller --> Graph : Manages
+    Controller --> AlgorithmBase : Executes via Strategy
+    
+    %% Relationships - Foundation
+    Graph "1" *-- "*" Node : Contains
+    Graph "1" *-- "*" Edge : Contains
+    FileManager ..> Graph : Creates/Saves
+    FileManager ..> GraphSerializer : Uses
+    
+    %% Relationships - Algorithms Inheritance
+    BFS --|> AlgorithmBase : Inherits
+    DFS --|> AlgorithmBase : Inherits
+    
+    %% Relationships - Shortest Path Strategy Pattern
+    DijkstraAlgorithm --|> AlgorithmBase : Inherits
+    AStarAlgorithm --|> AlgorithmBase : Inherits
+    
+    DijkstraAlgorithm ..|> IShortestPathAlgorithm : Implements
+    AStarAlgorithm ..|> IShortestPathAlgorithm : Implements
+    
+    %% The Manager uses the Interface, not the concrete classes
+    ShortestPathManager o-- IShortestPathAlgorithm : Composes
+    Controller --> ShortestPathManager : Uses for routing
+
+    %% UI Layer
+    class MainAppForm {
+        +GraphController controller
+        -InitializeComponent()
+        -Canvas_Paint()
+        -RunTraverse()
+        -RunFindShortestPath()
     }
     
-    note for Node "Sosyal Ağdaki Bir Kişi (Vertex)"
-```
----
-## 4.2 Edge.cs 
-Edge.cs Sınıfının Sorumlulukları:
+    class InputNodeForm {
+        +string NodeName
+        +float Activity
+        +float Interaction
+        +InputNodeForm(title)
+    }
 
-- Bağlantı Yönetimi: İki kullanıcı (Node) arasındaki ilişkiyi tutar.
-- Maliyet Hesabı: İki kullanıcı arasındaki "benzerlik/uzaklık" skorunu, özel matematiksel formülle hesaplar.
-- Algoritma Girdisi: En kısa yol algoritmalarına (Dijkstra) yolun "maliyetini" sunar.
-- Görselleştirme: Arayüzde iki daire arasına çizilecek çizginin referans noktalarını sağlar.
+    class Controller {
+        +Graph ActiveGraph
+        +LoadGraph(filePath)
+        +SaveGraph(filePath)
+        +CalculateShortestPath(start, end, type)
+        +RecalculateAllWeights()
+    }
 
-```mermaid
-classDiagram
+    %% Foundation Layer
+    class Graph {
+        +List~Node~ Nodes
+        +List~Edge~ Edges
+        +AddNode(Node)
+        +AddEdge(Node, Node)
+    }
+
+    class Node {
+        +string Id
+        +string Name
+        +Point Location
+        +Color Color
+    }
+
     class Edge {
-        %% --- Veri Özellikleri (Properties) ---
         +Node Source
         +Node Target
         +double Weight
-        
-        %% --- İş Mantığı (Methods) ---
-        +Edge(source, target)
-        +CalculateWeight()
+    }
+
+    class FileManager {
+        +SaveGraph(graph, path)
+        +LoadGraph(path)
+    }
+
+    class GraphSerializer {
+        +ParseCsv(lines)
+        +SerializeGraph(graph)
     }
     
-    %% İlişki
-    Edge --> Node : İki Düğümü Bağlar
+    %% ALGORITHMS LAYER
+    class AlgorithmBase {
+        <<Abstract>>
+        +string Name
+        +string TimeComplexity
+        #ValidateInput()
+        #GetNeighbors()
+        #GetEdgeWeight()
+    }
     
-    note for Edge "İki Kişi Arasındaki Bağlantı (Link)"
-    note for Edge "Weight = Formül Sonucu"
+    class BFS {
+        +Traverse(graph, start)
+    }
+    
+    class DFS {
+        +Traverse(graph, start)
+    }
+    
+    %% SHORTEST PATH MODULE (Strategy Pattern)
+    class IShortestPathAlgorithm {
+        <<Interface>>
+        +FindPath(graph, start, goal)
+    }
+
+    class ShortestPathManager {
+        -IShortestPathAlgorithm _algorithm
+        +SetAlgorithm(algorithm)
+        +Calculate(graph, start, target)
+    }
+
+    class DijkstraAlgorithm {
+        +FindPath(graph, start, goal)
+        -ReconstructPath(previous, current)
+    }
+
+    class AStarAlgorithm {
+        +FindPath(graph, start, goal)
+        -Heuristic(nodeA, nodeB)
+        -ReconstructPath(previous, current)
+    }
 ```
 ---
-## 4.3 Graph.cs 
-Graph.cs Sınıfının Sorumlulukları:
-
-- Veri Deposu: Tüm Node (Kullanıcı) ve Edge (Bağlantı) nesnelerini listelerde tutar.
-- Ağ Yönetimi: Ağa yeni kişi ekleme (AddNode) veya bağlantı kurma (AddEdge) komutlarını işler.
-- Veri Doğrulama: Hatalı verileri (örn: zaten var olan bir kişiyi eklemeye çalışmak) engeller.
-- Servis Sağlayıcı: Form1 (Görselleştirme) ve Algorithm (Analiz) sınıflarına ihtiyaç duydukları ham veriyi sağlar.
-- Kayıt Merkezi: Ağı dosyaya kaydetme veya dosyadan yükleme işlemlerini yönetir.
-
-```mermaid
-classDiagram
-    class Graph {
-        %% --- Veri Deposu (Lists) ---
-        +List~Node~ Nodes
-        +List~Edge~ Edges
-        
-        %% --- Yönetim Metotları (Methods) ---
-        +Graph()
-        +AddNode(Node)
-        +RemoveNode(Node)
-        +AddEdge(Node, Node)
-        +RemoveEdge(Edge)
-        +Clear()
-    }
-    
-    %% İlişkiler (Composition - Sıkı Bağlılık)
-    Graph *-- Node : İçerir (1..*)
-    Graph *-- Edge : İçerir (0..*)
-    
-    note for Graph "Ağın Yöneticisi (Manager)"
-    note for Graph "Algorithm ve Form1
-    buradan veri okur"
-```
----
-## 4.4 Coloring.cs 
-Coloring.cs Sınıfının Sorumlulukları:
-
-- Görsel Ayrıştırma: Komşu düğümleri farklı renklere boyayarak grafın okunmasını kolaylaştırır.
-- Welsh-Powell Algoritması: Düğümleri renklendirmek için proje isterlerinde zorunlu tutulan özel algoritmayı çalıştırır.
-- Derece Analizi: Algoritma gereği önce en çok bağlantısı olan (en popüler) düğümleri boyamaya başlar.
-- Renk Yönetimi: Sistemde kullanılabilecek renk paletini (Örn: Kırmızı, Mavi, Yeşil, Sarı...) yönetir ve atar.
-- Durum Değiştirici: Node sınıfının Color özelliğini doğrudan günceller.
-
-```mermaid
-classDiagram
-    class Coloring {
-        <<static>>
-        %% --- Renk Paleti ---
-        -List~Color~ Palette
-        
-        %% --- Algoritma ---
-        +WelshPowell(Graph) : void
-    }
-    
-    %% İlişki: Coloring, Graph'ı okur ve Node'u değiştirir
-    Coloring ..> Graph : Okur (Nodes & Edges)
-    Coloring ..> Node : Değiştirir (Sets Color)
-    
-    note for Coloring "Ressam (Painter)
-    Komşuları farklı renge boyar"
-```
----
-## 4.5 Form1.cs 
-Form1.cs Sınıfının Sorumlulukları:
-
-- Görselleştirme Motoru: Graph içindeki düğüm ve kenarları Paint olayını kullanarak ekrana çizer (Render).
-- Etkileşim Yöneticisi: Fare tıklamalarıyla (MouseClick) düğüm seçme, sürükleme veya bilgi görüntüleme işlemlerini yönetir.
-- Komuta Merkezi: Kullanıcının "Analiz Yap", "Kaydet", "Yükle" gibi komutlarını alır ve ilgili sınıflara iletir.
-- Köprü (Bridge): Arka plandaki mantık (Algorithm.cs) ile kullanıcının gördüğü ekran arasındaki bağlantıyı kurar.
-- Güncelleme: Veri değiştiğinde (yeni düğüm eklendiğinde) ekranı Invalidate() komutuyla yeniden boyatır.
-
-```mermaid
-classDiagram
-    class Form1 {
-        %% --- Bileşenler ---
-        -Graph myGraph
-        -Panel pnlCanvas
-        
-        %% --- Olay Yönetimi (Events) ---
-        +Form1()
-        -pnlCanvas_Paint(sender, e)
-        -pnlCanvas_MouseClick(sender, e)
-        -btnRunAlgorithm_Click(sender, e)
-        
-        %% --- Yardımcı Metotlar ---
-        -UpdateVisualization()
-        -ShowResults(string result)
-    }
-    
-    %% İlişkiler
-    Form1 --> Graph : Yönetir (Holds Data)
-    Form1 ..> Algorithm : Çağırır (Invokes Logic)
-    Form1 ..> Coloring : Çağırır (Invokes Paint Logic)
-    
-    note for Form1 "Orkestra Şefi (UI)"
-```
