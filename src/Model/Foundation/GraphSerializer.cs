@@ -53,6 +53,7 @@ namespace graphSNA.Model.Foundation
                     var neighbors = parts[4].Split(',')
                         .Where(n => !string.IsNullOrWhiteSpace(n))  // Skip empty entries
                         .Select(n => n.Trim().Replace("\"", ""))    // Clean each ID
+                        .Where(n => n != id) // Kendine referansı yoksay
                         .ToList();
 
                     neighborMap[id] = neighbors;
