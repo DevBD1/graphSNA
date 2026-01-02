@@ -20,7 +20,6 @@ namespace graphSNA.UI
         /// <summary>
         /// Controller responsible for managing graph data and logic.
         /// </summary>
-        private ListBox lstNeighbors;
         GraphController controller;
         Node selectedNode = null;
         Node startNodeForPathFinding = null;
@@ -80,8 +79,6 @@ namespace graphSNA.UI
                 null, panel1, new object[] { true });
 
             controller = new GraphController();
-
-            InitializeNeighborList();
 
             // --- INITIALIZE ANIMATION TIMER ---
             animationTimer = new System.Windows.Forms.Timer();
@@ -825,30 +822,6 @@ namespace graphSNA.UI
 
             animationNodes = null;
             panel1.Invalidate();
-        }
-
-        private void InitializeNeighborList()
-        {
-            // ListBox'ı kod ile oluşturuyoruz
-            lstNeighbors = new ListBox();
-            lstNeighbors.Location = new Point(15, 260); // Butonların altına yerleşecek
-            lstNeighbors.Size = new Size(480, 100);     // Genişlik ve yükseklik
-            lstNeighbors.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
-            lstNeighbors.BackColor = Color.WhiteSmoke;
-
-            // Başlık Etiketi
-            Label lblNeighbors = new Label();
-            lblNeighbors.Text = "Komşular & Maliyetler:";
-            lblNeighbors.AutoSize = true;
-            lblNeighbors.Location = new Point(15, 240); // Listenin hemen üstüne
-            lblNeighbors.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-
-            // GroupBox4'e ekle (Tasarımcıyı bozmadan)
-            this.groupBox4.Controls.Add(lblNeighbors);
-            this.groupBox4.Controls.Add(lstNeighbors);
-
-            // Panelin boyunu uzat ki liste sığsın
-            this.groupBox4.Height += 120;
         }
     }
 }
