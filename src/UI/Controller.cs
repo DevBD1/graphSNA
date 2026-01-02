@@ -396,6 +396,8 @@ namespace graphSNA.UI
                 .Where(e => e.Source == node || e.Target == node)
                 .ToList();
 
+            infoList.Add($"[TOPLAM KOMŞU: {connectedEdges.Count}]");
+
             foreach (var edge in connectedEdges)
             {
                 // Karşıdaki komşu düğümü bul
