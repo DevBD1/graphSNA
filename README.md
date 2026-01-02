@@ -451,6 +451,12 @@ https://i.ibb.co/rKNrK1Bf/graphsna9.png
 Validasyon Hatası: Yeni kişi eklerken (InputNodeForm) sayısal değer yerine harf girip "Kaydet" dediğinizde çıkan hata mesajının görüntüsü.
 https://i.ibb.co/cX8n5qK4/graphsna10.png
 
+Performans: 
+Kucuk veri seti: <img width="251" height="713" alt="image" src="https://github.com/user-attachments/assets/4a6b23d1-b80a-4aed-83e2-b173c338a546" />
+Buyuk veri seti: <img width="251" height="715" alt="image" src="https://github.com/user-attachments/assets/d64cb662-3436-46d9-ae50-2e61ba334c2a" />
+
+
+
 ### 5.3. Test Senaryoları ve Sonuçlar
 Uygulamanın kararlılığını ve doğruluğunu test etmek için aşağıdaki senaryolar uygulanmıştır.
 
@@ -526,7 +532,6 @@ Projenin mevcut versiyonunda aşağıdaki kısıtlamalar bulunmaktadır:
 
 | Sınırlılık | Açıklama |
 |------------|----------|
-| **Büyük Graf Performansı** | 100+ düğümlü graflarda force-directed layout algoritması yavaşlıyor. 200 düğümde belirgin gecikme yaşanıyor. |
 | **Tek Dosya Formatı** | Sadece CSV destekleniyor; JSON import/export özelliği bulunmuyor. |
 | **Yönlü Graf Desteği Yok** | Uygulama sadece yönsüz (undirected) grafları destekliyor. Instagram tarzı tek yönlü takip ilişkileri modellenemiyor. |
 | **Negatif Ağırlık** | Dijkstra algoritması negatif ağırlıklı kenarlarda çalışmıyor (Bellman-Ford implemente edilmedi). |
