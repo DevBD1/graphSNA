@@ -1,18 +1,23 @@
 using graphSNA.Model.Foundation;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
     /// <summary>
-    /// Contains shortest path algorithms (Dijkstra and A*) for finding 
-    /// the minimum cost route between two nodes in a weighted graph.
+    /// Dijkstra's algorithm for finding shortest paths in weighted graphs.
+    /// Guarantees optimal solution for non-negative edge weights.
     /// </summary>
-    public class DijkstraAlgorithm : IShortestPathAlgorithm
+    public class DijkstraAlgorithm : AlgorithmBase, IShortestPathAlgorithm
     {
+        public override string Name => "Dijkstra";
+        public override string TimeComplexity => "O((V + E) log V)";
+
         public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
         {
+            if (!ValidateInput(graph, start, goal))
+                return (new List<Node>(), 0);
+
             var distances = new Dictionary<Node, double>();
             var previous = new Dictionary<Node, Node>();
             var priorityQueue = new PriorityQueue<Node, double>();
@@ -21,6 +26,7 @@ namespace graphSNA.Model.Algorithms
             {
                 distances[node] = double.PositiveInfinity;
             }
+
             distances[start] = 0;
             priorityQueue.Enqueue(start, 0);
 
@@ -29,11 +35,11 @@ namespace graphSNA.Model.Algorithms
                 var current = priorityQueue.Dequeue();
 
                 if (current == goal)
-                    return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]);
+                    return (ReconstructPath(previous, goal), distances[goal]);
 
-                foreach (var neighbor in ShortestPathHelpers.GetNeighbors(graph, current))
+                foreach (var neighbor in GetNeighbors(graph, current))
                 {
-                    double weight = ShortestPathHelpers.GetEdgeWeight(graph, current, neighbor);
+                    double weight = GetEdgeWeight(graph, current, neighbor);
                     if (double.IsPositiveInfinity(weight))
                         continue;
 
@@ -50,80 +56,8 @@ namespace graphSNA.Model.Algorithms
 
             return (new List<Node>(), 0);
         }
-    }
 
-    /// <summary>
-    /// A* algorithm implementation using Euclidean distance as heuristic.
-    /// More efficient than Dijkstra when node positions are available.
-    /// </summary>
-    public class AStarAlgorithm : IShortestPathAlgorithm
-    {
-        public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
-        {
-            var distances = new Dictionary<Node, double>();
-            var priorityQueue = new PriorityQueue<Node, double>();
-            var previous = new Dictionary<Node, Node>();
-
-            foreach (var node in graph.Nodes) distances[node] = double.PositiveInfinity;
-
-            distances[start] = 0;
-            priorityQueue.Enqueue(start, Heuristics.Euclidean(start, goal));
-
-            while (priorityQueue.Count > 0)
-            {
-                var current = priorityQueue.Dequeue();
-
-                if (current == goal)
-                    return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]);
-
-                foreach (var neighbor in ShortestPathHelpers.GetNeighbors(graph, current))
-                {
-                    double weight = ShortestPathHelpers.GetEdgeWeight(graph, current, neighbor);
-                    if (double.IsPositiveInfinity(weight))
-                        continue;
-
-                    double newG = distances[current] + weight;
-
-                    if (newG < distances[neighbor])
-                    {
-                        distances[neighbor] = newG;
-                        previous[neighbor] = current;
-
-                        double fScore = newG + Heuristics.Euclidean(neighbor, goal);
-                        priorityQueue.Enqueue(neighbor, fScore);
-                    }
-                }
-            }
-
-            return (new List<Node>(), 0);
-        }
-    }
-
-    // Helper methods shared by shortest path algorithms
-    public static class ShortestPathHelpers
-    {
-        public static IEnumerable<Node> GetNeighbors(Graph graph, Node node)
-        {
-            foreach (var edge in graph.Edges)
-            {
-                if (edge.Source == node) yield return edge.Target;
-                else if (edge.Target == node) yield return edge.Source;
-            }
-        }
-
-        public static double GetEdgeWeight(Graph graph, Node a, Node b)
-        {
-            foreach (var edge in graph.Edges)
-            {
-                if (edge.Source == a && edge.Target == b || edge.Source == b && edge.Target == a)
-                {
-                    return edge.Weight;
-                }
-            }
-            return double.PositiveInfinity;
-        }
-
-        public static List<Node> ReconstructPath(Dictionary<Node, Node> previous, Node current)
+        private List<Node> ReconstructPath(Dictionary<Node, Node> previous, Node current)
         {
             var path = new List<Node> { current };
             while (previous.ContainsKey(current))
@@ -136,7 +70,85 @@ namespace graphSNA.Model.Algorithms
         }
     }
 
-    // Strategy pattern manager for runtime algorithm switching
+    /// <summary>
+    /// A* algorithm implementation using Euclidean distance as heuristic.
+    /// More efficient than Dijkstra when spatial information is available.
+    /// </summary>
+    public class AStarAlgorithm : AlgorithmBase, IShortestPathAlgorithm
+    {
+        public override string Name => "A* (A-Star)";
+        public override string TimeComplexity => "O((V + E) log V)";
+
+        public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
+        {
+            if (!ValidateInput(graph, start, goal))
+                return (new List<Node>(), 0);
+
+            var distances = new Dictionary<Node, double>();
+            var previous = new Dictionary<Node, Node>();
+            var priorityQueue = new PriorityQueue<Node, double>();
+
+            foreach (var node in graph.Nodes)
+            {
+                distances[node] = double.PositiveInfinity;
+            }
+
+            distances[start] = 0;
+            priorityQueue.Enqueue(start, Heuristic(start, goal));
+
+            while (priorityQueue.Count > 0)
+            {
+                var current = priorityQueue.Dequeue();
+
+                if (current == goal)
+                    return (ReconstructPath(previous, goal), distances[goal]);
+
+                foreach (var neighbor in GetNeighbors(graph, current))
+                {
+                    double weight = GetEdgeWeight(graph, current, neighbor);
+                    if (double.IsPositiveInfinity(weight))
+                        continue;
+
+                    double newG = distances[current] + weight;
+
+                    if (newG < distances[neighbor])
+                    {
+                        distances[neighbor] = newG;
+                        previous[neighbor] = current;
+
+                        double fScore = newG + Heuristic(neighbor, goal);
+                        priorityQueue.Enqueue(neighbor, fScore);
+                    }
+                }
+            }
+
+            return (new List<Node>(), 0);
+        }
+
+        private double Heuristic(Node a, Node b)
+        {
+            var dx = a.Location.X - b.Location.X;
+            var dy = a.Location.Y - b.Location.Y;
+            return Math.Sqrt(dx * dx + dy * dy);
+        }
+
+        private List<Node> ReconstructPath(Dictionary<Node, Node> previous, Node current)
+        {
+            var path = new List<Node> { current };
+            while (previous.ContainsKey(current))
+            {
+                current = previous[current];
+                path.Add(current);
+            }
+            path.Reverse();
+            return path;
+        }
+    }
+
+    /// <summary>
+    /// Strategy pattern manager for runtime algorithm switching.
+    /// Allows dynamic selection between different shortest path algorithms.
+    /// </summary>
     public class ShortestPathManager
     {
         private IShortestPathAlgorithm _algorithm;
@@ -148,20 +160,9 @@ namespace graphSNA.Model.Algorithms
 
         public void SetAlgorithm(IShortestPathAlgorithm algorithm) => _algorithm = algorithm;
 
-        public (List<Node>, double) Calculate(Graph g, Node s, Node target)
+        public (List<Node>, double) Calculate(Graph graph, Node start, Node target)
         {
-            return _algorithm.FindPath(g, s, target);
-        }
-    }
-
-    // Heuristic functions for informed search algorithms
-    public static class Heuristics
-    {
-        public static double Euclidean(Node a, Node b)
-        {
-            var dx = a.Location.X - b.Location.X;
-            var dy = a.Location.Y - b.Location.Y;
-            return Math.Sqrt(dx * dx + dy * dy);
+            return _algorithm.FindPath(graph, start, target);
         }
     }
 }

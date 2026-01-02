@@ -1,23 +1,27 @@
 ﻿using graphSNA.Model.Foundation;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
     /// <summary>
     /// Breadth-First Search (BFS) traversal algorithm.
     /// Explores all neighbors at the current depth before moving to the next level.
-    /// Time Complexity: O(V + E) where V = vertices, E = edges.
+    /// Uses a Queue (FIFO - First In First Out) data structure.
     /// </summary>
-    public class BFS : IGraphTraversal
+    public class BFS : AlgorithmBase, IGraphTraversal
     {
+        public override string Name => "BFS (Breadth-First Search)";
+        public override string TimeComplexity => "O(V + E)";
+
         public List<Node> Traverse(Graph graph, Node startNode)
         {
-            var visited = new HashSet<Node>();
-            var queue = new Queue<Node>();
             var result = new List<Node>();
 
-            if (startNode == null || graph == null) return result;
+            if (!ValidateInput(graph, startNode))
+                return result;
+
+            var visited = new HashSet<Node>();
+            var queue = new Queue<Node>();
 
             queue.Enqueue(startNode);
             visited.Add(startNode);
@@ -39,16 +43,6 @@ namespace graphSNA.Model.Algorithms
             }
 
             return result;
-        }
-
-        // Helper to find connected nodes in undirected graph
-        private IEnumerable<Node> GetNeighbors(Graph graph, Node node)
-        {
-            foreach (var edge in graph.Edges)
-            {
-                if (edge.Source == node) yield return edge.Target;
-                else if (edge.Target == node) yield return edge.Source;
-            }
         }
     }
 }
