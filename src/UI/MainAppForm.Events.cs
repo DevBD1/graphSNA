@@ -70,6 +70,9 @@ namespace graphSNA.UI
                     groupBox1.Text = $"Dosya: {Path.GetFileName(ofd.FileName)}";
                     controller.RecalculateAllWeights();
 
+                    // Refresh the node search list
+                    RefreshNodeSearchList();
+
                     // Distributes nodes across the screen randomly and uniformly
                     controller.ApplyForceLayout(panel1.Width, panel1.Height);
 
@@ -377,7 +380,6 @@ namespace graphSNA.UI
 
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    // Add via controller (returns null if duplicate)
                     var newNode = controller.AddNode(form.NodeName, form.Activity, form.Interaction, 0, lastRightClickPoint);
                     
                     if (newNode == null)
@@ -387,6 +389,7 @@ namespace graphSNA.UI
                         return;
                     }
                     
+                    RefreshNodeSearchList(); // Update search list
                     panel1.Invalidate();
                 }
             };
@@ -405,7 +408,8 @@ namespace graphSNA.UI
                     {
                         controller.RemoveNode(selectedNode);
                         selectedNode = null;
-                        ClearNodeInfoPanel(); // Clear the right panel
+                        ClearNodeInfoPanel();
+                        RefreshNodeSearchList(); // Update search list
                         panel1.Invalidate();
                     }
                 }

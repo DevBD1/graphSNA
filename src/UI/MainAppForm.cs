@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Windows.Forms;
 using System.Reflection;
+using System.Linq;
 using graphSNA.Model.Foundation;
 
 namespace graphSNA.UI
@@ -32,6 +33,17 @@ namespace graphSNA.UI
         private bool isDraggingEdge = false; // Are we currently drawing a connection?
         private Edge selectedEdge = null;    // The Edge that was right-clicked
 
+        // --- NODE DRAGGING VARIABLES ---
+        private Node draggingNode = null;    // The node being dragged
+        private bool isDraggingNode = false; // Are we currently dragging a node?
+        private Point dragOffset;            // Offset from node's top-left corner to mouse position
+        // -------------------------------
+
+        // --- NODE SEARCH CONTROLS ---
+        private ComboBox cmbNodeSearch;
+        private bool isUpdatingComboBox = false; // Prevent recursive events
+        // ----------------------------
+
         // Visual settings
         private const int NodeRadius = 8;
         private const int NodeSize = 16;
@@ -58,6 +70,9 @@ namespace graphSNA.UI
 
             controller = new GraphController();
 
+            // --- DYNAMICALLY ADD SEARCH BOX ---
+            CreateSearchBox();
+
             // --- DYNAMICALLY ADD LOG BOX ---
             CreateLogBox();
 
@@ -78,6 +93,118 @@ namespace graphSNA.UI
             UpdateUITexts();
 
             InitializeContextMenu();
+        }
+
+        private void CreateSearchBox()
+        {
+            GroupBox grpSearch = new GroupBox();
+            grpSearch.Text = "Düğüm Ara";
+            grpSearch.Size = new Size(238, 60);
+            grpSearch.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+            grpSearch.ForeColor = Color.DarkSlateGray;
+            grpSearch.Padding = new Padding(5);
+
+            cmbNodeSearch = new ComboBox();
+            cmbNodeSearch.Location = new Point(10, 25);
+            cmbNodeSearch.Size = new Size(218, 23);
+            cmbNodeSearch.DropDownStyle = ComboBoxStyle.DropDown;
+            cmbNodeSearch.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            cmbNodeSearch.AutoCompleteSource = AutoCompleteSource.ListItems;
+            cmbNodeSearch.Sorted = true;
+            cmbNodeSearch.Font = new Font("Segoe UI", 9, FontStyle.Regular);
+
+            // Event: When user selects or types a node name
+            cmbNodeSearch.SelectedIndexChanged += CmbNodeSearch_SelectedIndexChanged;
+            cmbNodeSearch.KeyDown += CmbNodeSearch_KeyDown;
+
+            grpSearch.Controls.Add(cmbNodeSearch);
+
+            // Insert at the beginning of flowLayoutPanel1 (before other GroupBoxes)
+            this.flowLayoutPanel1.Controls.Add(grpSearch);
+            this.flowLayoutPanel1.Controls.SetChildIndex(grpSearch, 0);
+        }
+
+        private void CmbNodeSearch_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (isUpdatingComboBox || cmbNodeSearch.SelectedItem == null) return;
+
+            string selectedName = cmbNodeSearch.SelectedItem.ToString();
+            Node foundNode = controller.ActiveGraph?.Nodes.FirstOrDefault(n => n.Name == selectedName);
+
+            if (foundNode != null)
+            {
+                SelectAndFocusNode(foundNode);
+            }
+        }
+
+        private void CmbNodeSearch_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                string searchText = cmbNodeSearch.Text.Trim();
+                if (string.IsNullOrEmpty(searchText)) return;
+
+                // Find node by name (case-insensitive partial match)
+                Node foundNode = controller.ActiveGraph?.Nodes
+                    .FirstOrDefault(n => n.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase));
+
+                if (foundNode != null)
+                {
+                    SelectAndFocusNode(foundNode);
+                    e.Handled = true;
+                    e.SuppressKeyPress = true;
+                }
+                else
+                {
+                    MessageBox.Show($"'{searchText}' ile eşleşen düğüm bulunamadı.", 
+                        "Bulunamadı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+
+        private void SelectAndFocusNode(Node node)
+        {
+            // 1. Select the node
+            selectedNode = node;
+            UpdateNodeInfoPanel(node);
+
+            // 2. Center the view on the node
+            float nodeCenterX = node.Location.X + NodeRadius;
+            float nodeCenterY = node.Location.Y + NodeRadius;
+
+            float panelCenterX = panel1.Width / 2.0f;
+            float panelCenterY = panel1.Height / 2.0f;
+
+            // Calculate pan offset to center the node
+            panOffsetX = panelCenterX - (nodeCenterX * zoomFactor);
+            panOffsetY = panelCenterY - (nodeCenterY * zoomFactor);
+
+            // 3. Redraw
+            panel1.Invalidate();
+        }
+
+        /// <summary>
+        /// Refreshes the node search ComboBox with current graph nodes.
+        /// Call this after loading a graph or adding/removing nodes.
+        /// </summary>
+        public void RefreshNodeSearchList()
+        {
+            if (controller.ActiveGraph == null) return;
+
+            isUpdatingComboBox = true;
+
+            cmbNodeSearch.Items.Clear();
+            foreach (var node in controller.ActiveGraph.Nodes.OrderBy(n => n.Name))
+            {
+                cmbNodeSearch.Items.Add(node.Name);
+            }
+
+            // Update AutoComplete
+            var autoComplete = new AutoCompleteStringCollection();
+            autoComplete.AddRange(controller.ActiveGraph.Nodes.Select(n => n.Name).ToArray());
+            cmbNodeSearch.AutoCompleteCustomSource = autoComplete;
+
+            isUpdatingComboBox = false;
         }
 
         public void DisplayResult(string message)
@@ -250,6 +377,12 @@ namespace graphSNA.UI
                     finalColor = Color.Yellow;
                     borderPen = new Pen(Color.Red, 2);
                 }
+                // Highlight the node being dragged
+                else if (node == draggingNode)
+                {
+                    finalColor = Color.Orange;
+                    borderPen = new Pen(Color.DarkOrange, 2);
+                }
 
                 using (Brush fillBrush = new SolidBrush(finalColor))
                 {
@@ -295,47 +428,60 @@ namespace graphSNA.UI
         }
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
-            if (!isPanning && !isDraggingEdge)
-            {
-                // Coordinate conversion
-                float worldX = (e.X - panOffsetX) / zoomFactor;
-                float worldY = (e.Y - panOffsetY) / zoomFactor;
-                Point worldPoint = new Point((int)worldX, (int)worldY);
+            // Coordinate conversion (used by multiple features)
+            float worldX = (e.X - panOffsetX) / zoomFactor;
+            float worldY = (e.Y - panOffsetY) / zoomFactor;
+            Point worldPoint = new Point((int)worldX, (int)worldY);
 
-                // Is there anything underneath?
-                // Using wide tolerance (15f) for Edge here as well
-                bool isOverNode = controller.FindNodeAtPoint(worldPoint, NodeRadius) != null;
-                bool isOverEdge = controller.FindEdgeAtPoint(worldPoint, 15f) != null;
-
-                if (isOverNode || isOverEdge)
-                    panel1.Cursor = Cursors.Hand; // Hand cursor for clickable items 👆
-                else
-                    panel1.Cursor = Cursors.Default;
-            }
-            if (isDraggingEdge)
+            // --- NODE DRAGGING ---
+            if (isDraggingNode && draggingNode != null)
             {
-                currentMousePos = e.Location; // Mouse screen coordinates
-                panel1.Invalidate(); // Redraw the line
+                // Update node position (subtract offset for accurate placement)
+                draggingNode.Location = new Point(
+                    (int)worldX - dragOffset.X,
+                    (int)worldY - dragOffset.Y
+                );
+                panel1.Invalidate();
                 return;
             }
+
+            // --- EDGE DRAGGING ---
+            if (isDraggingEdge)
+            {
+                currentMousePos = e.Location;
+                panel1.Invalidate();
+                return;
+            }
+
+            // --- PANNING ---
             if (isPanning)
             {
-                // Calculate how much the mouse moved
                 float deltaX = e.X - panStartPoint.X;
                 float deltaY = e.Y - panStartPoint.Y;
 
-                // Update the pan offset
                 panOffsetX += deltaX;
                 panOffsetY += deltaY;
 
                 panStartPoint = e.Location;
-                panel1.Invalidate(); // Redraw with new position
+                panel1.Invalidate();
+                return;
             }
+
+            // --- CURSOR UPDATE (when not dragging anything) ---
+            bool isOverNode = controller.FindNodeAtPoint(worldPoint, NodeRadius) != null;
+            bool isOverEdge = controller.FindEdgeAtPoint(worldPoint, 15f) != null;
+
+            if (isOverNode)
+                panel1.Cursor = Cursors.Hand;
+            else if (isOverEdge)
+                panel1.Cursor = Cursors.Hand;
+            else
+                panel1.Cursor = Cursors.Default;
         }
         private void Canvas_MouseClick(object sender, MouseEventArgs e)
         {
-            // Do NOT open the menu if panning was just performed or CTRL is pressed!
-            if (isPanning || isDraggingEdge || Control.ModifierKeys == Keys.Control) return;
+            // Do NOT open the menu if any dragging was performed or CTRL is pressed!
+            if (isPanning || isDraggingEdge || isDraggingNode || Control.ModifierKeys == Keys.Control) return;
 
             // --- COORDINATE CALCULATIONS ---
             float worldX = (e.X - panOffsetX) / zoomFactor;
@@ -376,7 +522,7 @@ namespace graphSNA.UI
                     // (We will add it dynamically below)
 
                     ContextMenuStrip edgeMenu = new ContextMenuStrip();
-                    edgeMenu.Items.Add("Delete Connection").Click += (s, args) => {
+                    edgeMenu.Items.Add("Bağlantıyı Sil").Click += (s, args) => {
                         controller.RemoveEdge(selectedEdge.Source, selectedEdge.Target);
                         panel1.Invalidate();
                     };
@@ -439,6 +585,17 @@ namespace graphSNA.UI
         }
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
+            // --- NODE DRAGGING END ---
+            if (isDraggingNode)
+            {
+                isDraggingNode = false;
+                draggingNode = null;
+                panel1.Cursor = Cursors.Default;
+                panel1.Invalidate();
+                return;
+            }
+
+            // --- EDGE DRAGGING END ---
             if (isDraggingEdge)
             {
                 // Is there a node at the drop location?
@@ -455,11 +612,11 @@ namespace graphSNA.UI
 
                     if (success)
                     {
-                        MessageBox.Show($"Connection established: {edgeSourceNode.Name} <-> {targetNode.Name}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"Bağlantı oluşturuldu: {edgeSourceNode.Name} <-> {targetNode.Name}", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {
-                        MessageBox.Show("This connection already exists!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("Bu bağlantı zaten mevcut!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
 
@@ -469,10 +626,12 @@ namespace graphSNA.UI
                 panel1.Invalidate();
                 return;
             }
+
+            // --- PANNING END ---
             if (isPanning)
             {
                 isPanning = false;
-                panel1.Cursor = Cursors.Default; // Reset cursor to default
+                panel1.Cursor = Cursors.Default;
             }
         }
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
@@ -489,22 +648,37 @@ namespace graphSNA.UI
             {
                 isDraggingEdge = true;
                 edgeSourceNode = clickedNode;
-                currentMousePos = e.Location; // Starting point
+                currentMousePos = e.Location;
                 return;
             }
-            // 1. INITIATE PAN (CTRL + RIGHT/LEFT CLICK)
+
+            // --- INITIATE NODE DRAGGING ---
+            // Condition: Left Click + ALT pressed + A node is clicked
+            if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Alt && clickedNode != null)
+            {
+                isDraggingNode = true;
+                draggingNode = clickedNode;
+                // Calculate offset from mouse to node's top-left corner
+                dragOffset = new Point(
+                    (int)worldX - clickedNode.Location.X,
+                    (int)worldY - clickedNode.Location.Y
+                );
+                panel1.Cursor = Cursors.SizeAll;
+                return;
+            }
+
+            // --- INITIATE PAN (CTRL + RIGHT/LEFT CLICK) ---
             if ((e.Button == MouseButtons.Right || e.Button == MouseButtons.Left) && Control.ModifierKeys == Keys.Control)
             {
                 isPanning = true;
-                panStartPoint = e.Location; // First point of mouse press
-                panel1.Cursor = Cursors.SizeAll; // Visual feedback
+                panStartPoint = e.Location;
+                panel1.Cursor = Cursors.SizeAll;
+                return;
             }
 
-            // 2. PREPARE RIGHT CLICK MENU (RIGHT CLICK ONLY)
-            else if (e.Button == MouseButtons.Right)
+            // --- PREPARE RIGHT CLICK MENU (RIGHT CLICK ONLY) ---
+            if (e.Button == MouseButtons.Right)
             {
-                // If CTRL is not pressed, this is a menu request.
-                // Save the location (to be used in MouseClick)
                 _rightMouseDownLocation = e.Location;
             }
         }
@@ -521,9 +695,10 @@ namespace graphSNA.UI
             textBox2.Text = node.Activity.ToString();
             textBox3.Text = node.Interaction.ToString();
 
-            // Enable Delete and Edit buttons
-            // btnDeleteNode.Enabled = true; (If buttons exist)
-            // btnEditNode.Enabled = true;
+            // Update ComboBox selection (without triggering event)
+            isUpdatingComboBox = true;
+            cmbNodeSearch.SelectedItem = node.Name;
+            isUpdatingComboBox = false;
         }
 
         // Clears the panel (when clicking on empty space)
@@ -532,6 +707,12 @@ namespace graphSNA.UI
             textBox1.Text = "";
             textBox2.Text = "";
             textBox3.Text = "";
+
+            // Clear ComboBox selection
+            isUpdatingComboBox = true;
+            cmbNodeSearch.SelectedIndex = -1;
+            cmbNodeSearch.Text = "";
+            isUpdatingComboBox = false;
         }
     }
 }
