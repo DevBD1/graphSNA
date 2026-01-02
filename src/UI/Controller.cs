@@ -16,6 +16,10 @@ namespace graphSNA.UI
     {
         // We store the data here, Form cannot access it directly (Encapsulation)
         public Graph ActiveGraph { get; private set; }
+        
+        // Stores the nodes of the calculated shortest path for visualization
+        public List<Node> HighlightedPath { get; set; } = new List<Node>();
+
         public GraphController()
         {
             ActiveGraph = new Graph();

@@ -142,6 +142,29 @@ namespace graphSNA.UI
                         g.DrawString(weightText, weightFont, Brushes.Black, textRect.Location);
                     }
                 }
+
+                // =========================================================
+                // 1.5. HIGHLIGHT PATH (YOLU BOYA) 🌟
+                // =========================================================
+                if (controller.HighlightedPath != null && controller.HighlightedPath.Count > 1)
+                {
+                    using (Pen pathPen = new Pen(Color.LimeGreen, 4)) // Kalın Yeşil
+                    {
+                        pathPen.StartCap = LineCap.Round;
+                        pathPen.EndCap = LineCap.Round;
+
+                        for (int i = 0; i < controller.HighlightedPath.Count - 1; i++)
+                        {
+                            Node n1 = controller.HighlightedPath[i];
+                            Node n2 = controller.HighlightedPath[i + 1];
+
+                            Point p1 = new Point(n1.Location.X + NodeRadius, n1.Location.Y + NodeRadius);
+                            Point p2 = new Point(n2.Location.X + NodeRadius, n2.Location.Y + NodeRadius);
+
+                            g.DrawLine(pathPen, p1, p2);
+                        }
+                    }
+                }
             }
 
             // ========================================================================

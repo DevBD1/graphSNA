@@ -164,16 +164,17 @@ namespace graphSNA.UI
 
             if (result.path.Count > 0)
             {
-                string pathStr = string.Join(" -> ", result.path.Select(n => n.Name));
+                controller.HighlightedPath = result.path; // Store for visualization
                 txtCost.Text = $"{result.cost:F2}";
-                MessageBox.Show($"Path: {pathStr}\nCost: {result.cost:F2}", "Result");
+                // MessageBox.Show removed for visualization
             }
             else
             {
+                controller.HighlightedPath = null;
                 txtCost.Text = "None";
                 MessageBox.Show("No path found.", "Result");
             }
-            panel1.Invalidate();
+            panel1.Invalidate(); // Trigger redraw
         }
         
         // --- 3. TRAVERSAL (BFS/DFS) LOGIC ---
