@@ -621,16 +621,16 @@ namespace graphSNA.UI
             }
             else
             {
-                sb.AppendLine("Graf PARÇALI: Ayrik topluluklar mevcut!");
+                sb.AppendLine("Graf PARÇALI: Ayrık topluluklar mevcut!");
             }
             sb.AppendLine();
 
             int index = 1;
             foreach (var component in components.OrderByDescending(c => c.Count))
             {
-                string status = component.Count == 1 ? " [IZOLE]" : "";
+                string status = component.Count == 1 ? " [İZOLE]" : "";
                 string nodes = string.Join(", ", component.Select(n => n.Name));
-                sb.AppendLine($"Bilesen {index} ({component.Count} dugum){status}:");
+                sb.AppendLine($"Bileşen {index} ({component.Count} düğüm){status}:");
                 sb.AppendLine($"  {nodes}");
                 sb.AppendLine();
                 index++;
