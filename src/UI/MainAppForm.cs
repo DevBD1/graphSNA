@@ -233,7 +233,7 @@ namespace graphSNA.UI
             rtbLogs.Clear(); // Always clear previous result for a clean look
             rtbLogs.SelectionFont = new Font("Consolas", 9, FontStyle.Bold);
             rtbLogs.SelectionColor = Color.DarkBlue;
-            rtbLogs.AppendText("--- Latest Analysis Result ---\n\n");
+            rtbLogs.AppendText("--- Son Analiz Sonucu ---\n\n");
 
             rtbLogs.SelectionFont = new Font("Consolas", 9, FontStyle.Regular);
             rtbLogs.SelectionColor = Color.Black;
@@ -771,9 +771,9 @@ namespace graphSNA.UI
             StringBuilder sb = new StringBuilder();
             sb.AppendLine("[ANIMASYON DEVAM EDIYOR]");
             sb.AppendLine($"Algoritma: {algo}");
-            sb.AppendLine($"Adim: {animationCurrentIndex} / {animationNodes.Count}");
+            sb.AppendLine($"Adım: {animationCurrentIndex} / {animationNodes.Count}");
             sb.AppendLine();
-            sb.AppendLine("Ziyaret Sirasi:");
+            sb.AppendLine("Ziyaret Sırası:");
 
             for (int i = 0; i < animationCurrentIndex; i++)
             {
@@ -796,12 +796,12 @@ namespace graphSNA.UI
                 string algo = radioDFS.Checked ? "DFS" : "BFS";
 
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine("[ANIMASYON TAMAMLANDI]");
+                sb.AppendLine("[ANİMASYON TAMAMLANDI]");
                 sb.AppendLine();
                 sb.AppendLine($"Algoritma: {algo}");
-                sb.AppendLine($"Ziyaret Edilen Dugum Sayisi: {animationNodes.Count}");
+                sb.AppendLine($"Ziyaret Edilen Düğüm Sayısı: {animationNodes.Count}");
                 sb.AppendLine();
-                sb.AppendLine("Gezinme Sirasi:");
+                sb.AppendLine("Gezinme Sırası:");
                 sb.AppendLine(string.Join(" -> ", animationNodes.Select(n => n.Name)));
 
                 DisplayResult(sb.ToString());

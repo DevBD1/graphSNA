@@ -254,12 +254,12 @@ namespace graphSNA.UI
 
                 // Show starting message
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"[{algo} ANIMASYONU BASLATILIYOR]");
+                sb.AppendLine($"[{algo} ANIMASYON BAŞLATILIYOR]");
                 sb.AppendLine();
-                sb.AppendLine($"Baslangic Dugumu: {startNode.Name}");
-                sb.AppendLine($"Toplam Dugum: {resultOrder.Count}");
+                sb.AppendLine($"Başlangıç Düğümü: {startNode.Name}");
+                sb.AppendLine($"Toplam Düğüm: {resultOrder.Count}");
                 sb.AppendLine();
-                sb.AppendLine("Her 0.4 saniyede bir dugum ziyaret edilecek.");
+                sb.AppendLine("Her saniyede bir düğüm ziyaret edilecek.");
                 DisplayResult(sb.ToString());
 
                 // Start timer
@@ -638,10 +638,10 @@ namespace graphSNA.UI
 
             // Performance metrics
             sb.AppendLine("----------------------------");
-            sb.AppendLine("[PERFORMANS METRIKLERI]");
-            sb.AppendLine($"Islem Suresi: {FormatElapsedTime(stopwatch)}");
-            sb.AppendLine($"Dugum Sayisi: {controller.ActiveGraph.Nodes.Count}");
-            sb.AppendLine($"Kenar Sayisi: {controller.ActiveGraph.Edges.Count}");
+            sb.AppendLine("[PERFORMANS METRİKLERİ]");
+            sb.AppendLine($"İşlem Süresi: {FormatElapsedTime(stopwatch)}");
+            sb.AppendLine($"Düğüm Sayısı: {controller.ActiveGraph.Nodes.Count}");
+            sb.AppendLine($"Kenar Sayısı: {controller.ActiveGraph.Edges.Count}");
 
             DisplayResult(sb.ToString());
         }
