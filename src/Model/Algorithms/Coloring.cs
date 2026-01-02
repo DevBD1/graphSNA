@@ -5,6 +5,11 @@ using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
+    /// <summary>
+    /// Welsh-Powell graph coloring algorithm implementation.
+    /// Assigns colors to nodes such that no two adjacent nodes share the same color.
+    /// Uses a greedy approach based on node degree ordering.
+    /// </summary>
     public static class Coloring
     {
         private static readonly List<Color> Palette = new List<Color>

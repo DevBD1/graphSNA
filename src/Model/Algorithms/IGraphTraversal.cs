@@ -3,7 +3,10 @@ using System.Collections.Generic;
 
 namespace graphSNA.Model.Algorithms
 {
-    // Common interface for graph traversal algorithms (Polymorphism requirement)
+    /// <summary>
+    /// Common interface for graph traversal algorithms.
+    /// Enables polymorphism between BFS and DFS implementations.
+    /// </summary>
     public interface IGraphTraversal
     {
         List<Node> Traverse(Graph graph, Node startNode);

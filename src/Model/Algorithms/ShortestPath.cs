@@ -5,7 +5,10 @@ using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
-    // 1. DIJKSTRA ALGORITHM
+    /// <summary>
+    /// Contains shortest path algorithms (Dijkstra and A*) for finding 
+    /// the minimum cost route between two nodes in a weighted graph.
+    /// </summary>
     public class DijkstraAlgorithm : IShortestPathAlgorithm
     {
         public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
@@ -26,13 +29,13 @@ namespace graphSNA.Model.Algorithms
                 var current = priorityQueue.Dequeue();
 
                 if (current == goal)
-                    return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]); // Stop if we reached the goal
+                    return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]);
 
                 foreach (var neighbor in ShortestPathHelpers.GetNeighbors(graph, current))
                 {
                     double weight = ShortestPathHelpers.GetEdgeWeight(graph, current, neighbor);
                     if (double.IsPositiveInfinity(weight))
-                        continue; // Skip evaluation if the edge is missing or invalid
+                        continue;
 
                     double newDist = distances[current] + weight;
 
@@ -45,12 +48,14 @@ namespace graphSNA.Model.Algorithms
                 }
             }
 
-            // If there is no path found to the goal then return empty path and 0 cost
             return (new List<Node>(), 0);
         }
     }
 
-    // 2. A* ALGORITHM
+    /// <summary>
+    /// A* algorithm implementation using Euclidean distance as heuristic.
+    /// More efficient than Dijkstra when node positions are available.
+    /// </summary>
     public class AStarAlgorithm : IShortestPathAlgorithm
     {
         public (List<Node> path, double totalCost) FindPath(Graph graph, Node start, Node goal)
@@ -66,7 +71,7 @@ namespace graphSNA.Model.Algorithms
 
             while (priorityQueue.Count > 0)
             {
-                var current = priorityQueue.Dequeue();  
+                var current = priorityQueue.Dequeue();
 
                 if (current == goal)
                     return (ShortestPathHelpers.ReconstructPath(previous, goal), distances[goal]);
@@ -75,7 +80,7 @@ namespace graphSNA.Model.Algorithms
                 {
                     double weight = ShortestPathHelpers.GetEdgeWeight(graph, current, neighbor);
                     if (double.IsPositiveInfinity(weight))
-                        continue; // Skip evaluation if the edge is missing or invalid
+                        continue;
 
                     double newG = distances[current] + weight;
 
@@ -94,7 +99,7 @@ namespace graphSNA.Model.Algorithms
         }
     }
 
-    // Helper methods for shortest path algorithms
+    // Helper methods shared by shortest path algorithms
     public static class ShortestPathHelpers
     {
         public static IEnumerable<Node> GetNeighbors(Graph graph, Node node)
@@ -106,7 +111,6 @@ namespace graphSNA.Model.Algorithms
             }
         }
 
-        // Returns infinite cost if the edge is missing.
         public static double GetEdgeWeight(Graph graph, Node a, Node b)
         {
             foreach (var edge in graph.Edges)
@@ -116,7 +120,7 @@ namespace graphSNA.Model.Algorithms
                     return edge.Weight;
                 }
             }
-            return double.PositiveInfinity; // Edge missing; should not be preferred
+            return double.PositiveInfinity;
         }
 
         public static List<Node> ReconstructPath(Dictionary<Node, Node> previous, Node current)
@@ -132,7 +136,7 @@ namespace graphSNA.Model.Algorithms
         }
     }
 
-    // Manager Class to be used by the UI
+    // Strategy pattern manager for runtime algorithm switching
     public class ShortestPathManager
     {
         private IShortestPathAlgorithm _algorithm;
@@ -150,14 +154,13 @@ namespace graphSNA.Model.Algorithms
         }
     }
 
-    // Distance calculators for A*
+    // Heuristic functions for informed search algorithms
     public static class Heuristics
     {
-        // Euclidean: if a^2=b^2+c^2 => a=sqrt(b^2+c^2)
         public static double Euclidean(Node a, Node b)
         {
-            var dx = a.Location.X - b.Location.X; // x2 - x1
-            var dy = a.Location.Y - b.Location.Y; // y2 - y1
+            var dx = a.Location.X - b.Location.X;
+            var dy = a.Location.Y - b.Location.Y;
             return Math.Sqrt(dx * dx + dy * dy);
         }
     }

@@ -4,7 +4,11 @@ using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
-    // Depth-First Search implementation (Iterative approach)
+    /// <summary>
+    /// Depth-First Search (DFS) traversal algorithm.
+    /// Explores as far as possible along each branch before backtracking.
+    /// Time Complexity: O(V + E) where V = vertices, E = edges.
+    /// </summary>
     public class DFS : IGraphTraversal
     {
         public List<Node> Traverse(Graph graph, Node startNode)
@@ -26,7 +30,6 @@ namespace graphSNA.Model.Algorithms
                     visited.Add(current);
                     result.Add(current);
 
-                    // Get neighbors and reverse to maintain natural order in Stack
                     var neighbors = GetNeighbors(graph, current).ToList();
                     neighbors.Reverse();
 
