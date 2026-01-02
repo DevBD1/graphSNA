@@ -232,7 +232,33 @@ namespace graphSNA.UI
             int colorCount = controller.ColorGraph();
             panel1.Invalidate();
 
-            DisplayResult($"Algorithm: Welsh-Powell Coloring\nStatus: Success\nChromatic Number: {colorCount}");
+            // --- GENERATE LEGEND ---
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("Algorithm: Welsh-Powell Coloring");
+            sb.AppendLine("Status: Success");
+            sb.AppendLine($"Chromatic Number (Total Colors): {colorCount}");
+            sb.AppendLine("");
+            sb.AppendLine("[LEGEND - Color Distribution]");
+
+            // Group nodes by color to count usage
+            var colorGroups = controller.ActiveGraph.Nodes
+                .GroupBy(n => n.Color)
+                .OrderByDescending(g => g.Count())
+                .ToList();
+
+            foreach (var group in colorGroups)
+            {
+                // Try to get a readable name, otherwise use RGB
+                string colorName = group.Key.IsKnownColor ? group.Key.Name : $"#{group.Key.R:X2}{group.Key.G:X2}{group.Key.B:X2}";
+                
+                // Optional: List top 3 nodes in this color group for context
+                string exampleNodes = string.Join(", ", group.Take(3).Select(n => n.Name));
+                if (group.Count() > 3) exampleNodes += ", ...";
+
+                sb.AppendLine($"- {colorName.PadRight(15)}: {group.Count()} Nodes ({exampleNodes})");
+            }
+
+            DisplayResult(sb.ToString());
         }
 
         // --- 5. STATISTICS (DEGREE CENTRALITY) ---
