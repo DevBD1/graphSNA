@@ -467,6 +467,15 @@ namespace graphSNA.UI
             graphContextMenu.Items.Add(itemEditNode);
             graphContextMenu.Items.Add(new ToolStripSeparator()); // Separator line
             graphContextMenu.Items.Add(itemDeleteEdge);
+
+            var itemShowMatrix = new ToolStripMenuItem("Komşuluk Matrisini Göster");
+            itemShowMatrix.Click += (s, e) => {
+                string matrix = controller.GetAdjacencyMatrixAsString();
+                DisplayResult("[KOMŞULUK MATRİSİ]\n\n" + matrix);
+            };
+
+            graphContextMenu.Items.Add(new ToolStripSeparator());
+            graphContextMenu.Items.Add(itemShowMatrix);
         }
 
         private void BtnApplyLayout_Click(object sender, EventArgs e)

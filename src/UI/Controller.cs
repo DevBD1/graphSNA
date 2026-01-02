@@ -315,5 +315,35 @@ namespace graphSNA.UI
                 edge.CalculateWeight();
             }
         }
+
+        public string GetAdjacencyMatrixAsString()
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count == 0)
+                return "No graph data.";
+
+            var (matrix, nodeOrder) = ActiveGraph.GetAdjacencyMatrix();
+            int n = nodeOrder.Count;
+            StringBuilder sb = new StringBuilder();
+
+            // Header
+            sb.Append("".PadRight(10));
+            foreach (var node in nodeOrder)
+                sb.Append(node.Name.PadRight(8));
+            sb.AppendLine();
+
+            // Rows
+            for (int i = 0; i < n; i++)
+            {
+                sb.Append(nodeOrder[i].Name.PadRight(10));
+                for (int j = 0; j < n; j++)
+                {
+                    string val = matrix[i, j] > 0 ? matrix[i, j].ToString("F2") : "-";
+                    sb.Append(val.PadRight(8));
+                }
+                sb.AppendLine();
+            }
+
+            return sb.ToString();
+        }
     }
 }
