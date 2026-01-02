@@ -451,7 +451,7 @@ https://i.ibb.co/rKNrK1Bf/graphsna9.png
 Validasyon Hatası: Yeni kişi eklerken (InputNodeForm) sayısal değer yerine harf girip "Kaydet" dediğinizde çıkan hata mesajının görüntüsü.
 https://i.ibb.co/cX8n5qK4/graphsna10.png
 
-3. Test Senaryoları ve Sonuçlar
+### 5.3. Test Senaryoları ve Sonuçlar
 Uygulamanın kararlılığını ve doğruluğunu test etmek için aşağıdaki senaryolar uygulanmıştır.
 
 **Test Senaryosu 1: CSV Veri Yükleme ve Görselleştirme**
@@ -489,3 +489,93 @@ Amaç: Ağdaki en etkili düğümlerin belirlenmesi.
 Adımlar: "Refresh Stats" butonuna basılır ve tablodaki sıralama kontrol edilir.
 Beklenen Sonuç: Düğümlerin ConnectionCount * Interaction formülüne göre puanlanıp büyükten küçüğe sıralanması.
 Gerçekleşen Sonuç: Controller.GetTopInfluencers metodu doğru çalışmış, "İstatistikler" sekmesindeki DataGridView tablosu en yüksek skora sahip düğümleri (Örn: Cem, Levent gibi yüksek etkileşimli düğümler) en üstte listelemiştir.
+
+---
+## 6.1. Sonuç ve Tartışma
+### 6.1 Başarılar
+
+Proje kapsamında aşağıdaki hedeflere başarıyla ulaşılmıştır:
+
+#### Algoritma Gerçekleştirmeleri
+- **BFS ve DFS:** Her iki gezinme algoritması da başarıyla implemente edildi ve adım adım animasyon desteği eklendi.
+- **Dijkstra ve A\*:** Ağırlıklı en kısa yol algoritmaları çalışır durumda; sonuçlar hem görsel (yeşil path) hem de metin olarak sunuluyor.
+- **Welsh-Powell:** Graf renklendirme algoritması doğru çalışıyor; komşu düğümler farklı renklere boyanıyor ve kromatik sayı hesaplanıyor.
+- **Connected Components:** Bağlı bileşen analizi ile ayrık topluluklar ve izole düğümler tespit edilebiliyor.
+- **Degree Centrality:** En etkili 5 kullanıcı tablo halinde gösteriliyor.
+
+#### Yazılım Mimarisi
+- **OOP Prensipleri:** `Node`, `Edge`, `Graph`, `AlgorithmBase` gibi ayrı sınıflar oluşturuldu. Interface (`IGraphTraversal`, `IShortestPathAlgorithm`) ve abstract class (`AlgorithmBase`) kullanılarak polimorfizm sağlandı.
+- **Kod Tekrarı Önleme:** Ortak metodlar (`GetNeighbors`, `ValidateInput`, `GetEdgeWeight`) base class'a taşınarak DRY prensibi uygulandı.
+- **Encapsulation:** `GraphController` sınıfı, UI ile veri katmanı arasında köprü görevi görerek doğrudan veri erişimini engelliyor.
+
+#### Kullanıcı Deneyimi
+- **İnteraktif Arayüz:** Zoom/Pan, düğüm sürükleme, sağ tık menüsü gibi kullanıcı dostu özellikler eklendi.
+- **Gerçek Zamanlı Geri Bildirim:** Algoritma çalışma süreleri (ms/µs) ve performans metrikleri kullanıcıya gösteriliyor.
+- **Animasyonlu Traversal:** BFS/DFS algoritmaları adım adım animasyonla görselleştiriliyor.
+
+#### Veri Yönetimi
+- **CSV Import/Export:** Graf verileri CSV formatında kaydedilip yüklenebiliyor.
+- **Dinamik Ağırlık Hesaplama:** Proje isterlerindeki formül başarıyla implemente edildi.
+- **Komşuluk Matrisi/Listesi:** Hem ekranda gösterme hem de dışa aktarma destekleniyor.
+
+---
+
+### 6.2 Sınırlılıklar
+
+Projenin mevcut versiyonunda aşağıdaki kısıtlamalar bulunmaktadır:
+
+| Sınırlılık | Açıklama |
+|------------|----------|
+| **Büyük Graf Performansı** | 100+ düğümlü graflarda force-directed layout algoritması yavaşlıyor. 200 düğümde belirgin gecikme yaşanıyor. |
+| **Tek Dosya Formatı** | Sadece CSV destekleniyor; JSON import/export özelliği bulunmuyor. |
+| **Yönlü Graf Desteği Yok** | Uygulama sadece yönsüz (undirected) grafları destekliyor. Instagram tarzı tek yönlü takip ilişkileri modellenemiyor. |
+| **Negatif Ağırlık** | Dijkstra algoritması negatif ağırlıklı kenarlarda çalışmıyor (Bellman-Ford implemente edilmedi). |
+| **Çoklu Kenar** | İki düğüm arasında yalnızca bir kenar olabiliyor (multigraph desteği yok). |
+| **Geri Alma (Undo)** | Silme veya düzenleme işlemleri geri alınamıyor. |
+| **Otomatik Kaydetme** | Uygulama kapanırken otomatik kaydetme uyarısı verilmiyor. |
+
+---
+
+### 6.3 Olası Geliştirmeler
+
+Gelecek versiyonlarda aşağıdaki iyileştirmeler yapılabilir:
+
+#### Algoritma Geliştirmeleri
+| Özellik | Açıklama |
+|---------|----------|
+| **Bellman-Ford Algoritması** | Negatif ağırlıklı graflar için alternatif en kısa yol algoritması |
+| **PageRank** | Sosyal ağ analizinde daha gelişmiş merkezilik ölçümü |
+| **Community Detection** | Louvain veya Girvan-Newman algoritması ile topluluk tespiti |
+| **Minimum Spanning Tree** | Kruskal veya Prim algoritması ile minimum yayılan ağaç |
+
+#### Performans İyileştirmeleri
+| Özellik | Açıklama |
+|---------|----------|
+| **Async/Await Layout** | Force-directed layout hesaplamasının arka planda çalıştırılması |
+| **Spatial Indexing** | Quadtree veya R-tree ile büyük graflarda hızlı düğüm araması |
+| **GPU Rendering** | OpenGL veya DirectX ile donanım hızlandırmalı çizim |
+
+#### Kullanıcı Deneyimi
+| Özellik | Açıklama |
+|---------|----------|
+| **Undo/Redo** | Command pattern ile geri alma/yineleme desteği |
+| **Tema Desteği** | Açık/Koyu mod ve özelleştirilebilir renk şemaları |
+| **Graf Şablonları** | Hazır graf yapıları (tam graf, yıldız graf, ağaç vb.) |
+| **Çoklu Dil Desteği** | İngilizce ve diğer diller için lokalizasyon |
+
+#### Veri Yönetimi
+| Özellik | Açıklama |
+|---------|----------|
+| **JSON Desteği** | Alternatif dosya formatı olarak JSON import/export |
+| **Veritabanı Entegrasyonu** | SQLite veya PostgreSQL ile büyük veri setleri yönetimi |
+| **Bulut Senkronizasyonu** | Graf verilerinin bulut üzerinde saklanması |
+
+---
+
+### 6.4 Sonuç
+
+Bu proje, sosyal ağ analizi alanında temel graf algoritmalarının pratik uygulamasını başarıyla göstermektedir. Nesne yönelimli programlama prensipleri, SOLID ilkeleri ve tasarım kalıpları (Strategy Pattern, Template Method) kullanılarak sürdürülebilir bir yazılım mimarisi oluşturulmuştur.
+
+Geliştirme sürecinde karşılaşılan zorluklar (ekran titremesi, karakter kodlama, performans optimizasyonu) sistematik yaklaşımlarla çözülmüş ve bu süreç önemli öğrenme deneyimleri sağlamıştır.
+
+Proje, ders kapsamında istenen tüm işlevsel gereksinimleri karşılamakta olup, yukarıda belirtilen geliştirmelerle daha kapsamlı bir sosyal ağ analiz aracına dönüştürülebilir.
