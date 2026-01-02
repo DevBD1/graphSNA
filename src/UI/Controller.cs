@@ -391,17 +391,17 @@ namespace graphSNA.UI
 
             var infoList = new List<string>();
 
-            // Find all edges connected to this node
+            // Bu düğüme bağlı tüm kenarları bul
             var connectedEdges = ActiveGraph.Edges
                 .Where(e => e.Source == node || e.Target == node)
                 .ToList();
 
             foreach (var edge in connectedEdges)
             {
-                // Determine which node is the neighbor
+                // Karşıdaki komşu düğümü bul
                 Node neighbor = (edge.Source == node) ? edge.Target : edge.Source;
 
-                // Format: "Name (Cost: 0.85)"
+                // Format: "İsim (Maliyet: 0.85)"
                 infoList.Add($"{neighbor.Name} (Maliyet: {edge.Weight:F2})");
             }
 
