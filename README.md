@@ -416,4 +416,76 @@ classDiagram
         -ReconstructPath(previous, current)
     }
 ```
+
 ---
+## 5. Uygulamaya Ait Aciklamalara, Ekran görüntüleri ve Test
+GraphSNA (Social Network Analysis) uygulaması, karmaşık ağ yapılarını görselleştirmek, analiz etmek ve grafik teorisi algoritmalarını (BFS, DFS, Dijkstra, A*, Renklendirme vb.) bu ağlar üzerinde çalıştırmak amacıyla geliştirilmiş bir Windows Forms uygulamasıdır.
+
+- Uygulamanın temel yetenekleri şunlardır:
+- - Veri Yönetimi: .csv formatındaki veri setlerini (ID, İsim, Aktivite, Etkileşim, Komşular formatında) içe aktarabilir ve üzerinde çalışılan grafı dışa aktarabilir. Excel uyumluluğu için UTF-8 BOM desteği sağlanmıştır.
+- - Görselleştirme: Düğümler (Nodes) ve Kenarlar (Edges) GDI+ kullanılarak çizilir. "Force-Directed Layout" (Fiziksel Simülasyon) kullanılarak düğümlerin ekran üzerinde en uygun yerleşimi sağlanır.
+
+- Algoritmalar:
+- - Gezinme: Breadth-First Search (BFS) ve Depth-First Search (DFS) ile ağ üzerinde düğüm ziyaret sıralaması simüle edilir.
+- - En Kısa Yol: İki düğüm arasındaki en maliyet-etkin yol, Dijkstra ve A (A-Star)* algoritmaları kullanılarak hesaplanır. A* algoritması, düğümlerin konumlarına dayalı öklid mesafesini sezgisel (heuristic) olarak kullanır.
+- - Renklendirme: Welsh-Powell algoritması ile komşu düğümlerin aynı renge sahip olmayacağı şekilde en az renk sayısı (Kromatik Sayı) hesaplanır.
+- - Bağlı Bileşenler: Grafın parçalı olup olmadığı ve izole gruplar analiz edilir.
+- - Merkezilik Analizi: Düğümlerin komşu sayısı ve etkileşim puanlarına göre "Top Influencers" (En Etkili Kişiler) listesi oluşturulur.
+- - Düğüm Yönetimi: Arayüz üzerinden veya sağ tık menüsü ile yeni düğüm ekleme, silme ve özelliklerini (Activity, Interaction) düzenleme imkanı sunar. Veri girişlerinde 0-100 aralığı ve boş isim kontrolü gibi validasyonlar mevcuttur.
+
+### 5.2. Ekran Görüntüleri 
+
+Ana Ekran ve Yüklü Graf: large_dataset-1.csv dosyasını yükledikten sonra oluşan ağ yapısının görüntüsü.
+https://i.ibb.co/5J03dmr/graphsna5.png
+
+En Kısa Yol Analizi: İki düğüm seçip (Örn: Ali ve Ayşe) Dijkstra algoritmasını çalıştırdığınızda çizilen kırmızı yolun görüntüsü.
+https://i.ibb.co/fdXMqjY0/graphsna6.png
+
+İstatistik Paneli: Sağ taraftaki "Node Details" paneli ve alttaki "Komşular & Maliyetler" listesinin dolu halinin görüntüsü.
+https://i.ibb.co/d0rKqFY3/graphsna7.png
+https://i.ibb.co/MywKKLdh/graphsna8.png
+
+Renklendirme Algoritması: "Renklendirme" butonuna bastıktan sonra düğümlerin farklı renklere boyandığı görüntü.
+https://i.ibb.co/rKNrK1Bf/graphsna9.png
+
+Validasyon Hatası: Yeni kişi eklerken (InputNodeForm) sayısal değer yerine harf girip "Kaydet" dediğinizde çıkan hata mesajının görüntüsü.
+https://i.ibb.co/cX8n5qK4/graphsna10.png
+
+3. Test Senaryoları ve Sonuçlar
+Uygulamanın kararlılığını ve doğruluğunu test etmek için aşağıdaki senaryolar uygulanmıştır.
+
+**Test Senaryosu 1: CSV Veri Yükleme ve Görselleştirme**
+Amaç: Harici bir veri kaynağının doğru parse edilmesi ve görselleştirilmesi.
+Girdi: large_dataset-1.csv dosyası (İçerik: ID, İsim, 0-100 arası normalize edilmiş Activity ve Interaction değerleri).
+Beklenen Sonuç: Dosyadaki tüm düğümlerin ve komşuluk ilişkilerinin hatasız yüklenmesi, Türkçe karakterlerin (ş, ı, ö) bozulmaması.
+Gerçekleşen Sonuç: GraphSerializer sınıfı veriyi başarıyla okumuş, "ConnectionCount" değerleri doğru hesaplanmış ve Türkçe karakterler UTF-8 desteği sayesinde düzgün görüntülenmiştir.
+
+**Test Senaryosu 2: Hatalı Veri Girişi (Validasyon)**
+Amaç: Kullanıcının düğüm düzenleme formuna geçersiz veri girmesinin engellenmesi.
+Adımlar:
+Bir düğüme sağ tıklayıp "Düzenle" seçilir.
+"Activity" alanına "150" (Sınır dışı) veya "abc" (Metin) girilir.
+"Kaydet" butonuna basılır.
+Beklenen Sonuç: Uygulamanın işlemi reddetmesi ve uyarı mesajı göstermesi.
+Gerçekleşen Sonuç: InputNodeForm sınıfındaki kontrol mekanizması devreye girmiş, "Değerler 0 ile 100 arasında olmalıdır" veya "Geçerli sayısal değer giriniz" uyarısı verilerek kayıt engellenmiştir.
+
+**Test Senaryosu 3: En Kısa Yol (Shortest Path) Doğruluğu**
+Amaç: İki düğüm arasındaki maliyetin doğru hesaplanması.
+Adımlar:
+Başlangıç düğümü seçilir.
+Hedef düğüm seçilir.
+"Dijkstra" algoritması seçilerek çalıştırılır.
+Beklenen Sonuç: Algoritmanın, kenar ağırlıklarını (Activity ve Interaction parametrelerinden türetilen maliyet) dikkate alarak en düşük maliyetli rotayı çizmesi.
+Gerçekleşen Sonuç: DijkstraAlgorithm sınıfı, Priority Queue kullanarak en optimum yolu bulmuş ve toplam maliyeti arayüzde göstermiştir. Bulunan yol kırmızı renk ile vurgulanmıştır.
+
+**Test Senaryosu 4: Graf Renklendirme (Welsh-Powell)**
+Amaç: Komşu düğümlerin çakışmayacak şekilde renklendirilmesi.
+Adımlar: "Renklendirme" butonuna tıklanır.
+Beklenen Sonuç: Birbirine doğrudan bağlı (komşu) olan hiçbir düğümün aynı renkte olmaması.
+Gerçekleşen Sonuç: Algoritma, düğümleri derecelerine (degree) göre sıralayıp boyamış, işlem sonucunda kullanılan toplam renk sayısı (Kromatik Sayı) raporlanmıştır.
+
+**Test Senaryosu 5: Merkezilik ve İstatistikler**
+Amaç: Ağdaki en etkili düğümlerin belirlenmesi.
+Adımlar: "Refresh Stats" butonuna basılır ve tablodaki sıralama kontrol edilir.
+Beklenen Sonuç: Düğümlerin ConnectionCount * Interaction formülüne göre puanlanıp büyükten küçüğe sıralanması.
+Gerçekleşen Sonuç: Controller.GetTopInfluencers metodu doğru çalışmış, "İstatistikler" sekmesindeki DataGridView tablosu en yüksek skora sahip düğümleri (Örn: Cem, Levent gibi yüksek etkileşimli düğümler) en üstte listelemiştir.
