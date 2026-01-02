@@ -4,6 +4,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Diagnostics;
 using graphSNA.Model.Foundation;
 
 namespace graphSNA.UI
@@ -44,6 +45,17 @@ namespace graphSNA.UI
             this.chkShowWeights.CheckedChanged += (s, e) => panel1.Invalidate();
             this.button5.Click += btnEditNode_Click;
             this.button6.Click += btnDeleteNode_Click;
+        }
+
+        // --- HELPER: Format elapsed time for display ---
+        private static string FormatElapsedTime(Stopwatch sw)
+        {
+            double ms = sw.Elapsed.TotalMilliseconds;
+            if (ms < 1)
+                return $"{sw.Elapsed.TotalMicroseconds:F0} µs";
+            if (ms < 1000)
+                return $"{ms:F2} ms";
+            return $"{sw.Elapsed.TotalSeconds:F3} s";
         }
 
         // --- 1. FILE OPERATIONS ---
@@ -165,24 +177,44 @@ namespace graphSNA.UI
         private void RunShortestPathAlgorithm()
         {
             string algoType = radioAstar.Checked ? "A*" : "Dijkstra";
+            
+            // Start performance measurement
+            var stopwatch = Stopwatch.StartNew();
             var result = controller.CalculateShortestPath(startNodeForPathFinding, endNodeForPathFinding, algoType);
+            stopwatch.Stop();
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"Algoritma: {algoType}");
+            sb.AppendLine($"Başlangıç: {startNodeForPathFinding.Name}");
+            sb.AppendLine($"Hedef: {endNodeForPathFinding.Name}");
 
             if (result.path.Count > 0)
             {
-                controller.HighlightedPath = result.path; // Store for visualization
+                controller.HighlightedPath = result.path;
                 txtCost.Text = $"{result.cost:F2}";
 
-                string pathStr = string.Join("->", result.path.Select(n => n.Name)); // Compact arrows
-                DisplayResult($"Algoritma: {algoType}\nBaşlangıç: {startNodeForPathFinding.Name}\nHedef: {endNodeForPathFinding.Name}\nToplam Maliyet: {result.cost:F2}\nYol: {pathStr}");
+                string pathStr = string.Join(" → ", result.path.Select(n => n.Name));
+                sb.AppendLine($"Toplam Maliyet: {result.cost:F2}");
+                sb.AppendLine($"Yol: {pathStr}");
             }
             else
             {
                 controller.HighlightedPath = null;
                 txtCost.Text = "Yok";
-                DisplayResult($"Algoritma: {algoType}\nSonuç: Yol bulunamadı.");
+                sb.AppendLine("Sonuç: Yol bulunamadı.");
                 MessageBox.Show("Yol bulunamadı.", "Sonuç");
             }
-            panel1.Invalidate(); // Trigger redraw
+
+            // Append performance metrics
+            sb.AppendLine();
+            sb.AppendLine("───────────────────────────");
+            sb.AppendLine("[PERFORMANS METRİKLERİ]");
+            sb.AppendLine($"İşlem Süresi: {FormatElapsedTime(stopwatch)}");
+            sb.AppendLine($"Düğüm Sayısı: {controller.ActiveGraph.Nodes.Count}");
+            sb.AppendLine($"Kenar Sayısı: {controller.ActiveGraph.Edges.Count}");
+
+            DisplayResult(sb.ToString());
+            panel1.Invalidate();
         }
 
         // --- 3. TRAVERSAL (BFS/DFS) LOGIC ---
@@ -203,7 +235,11 @@ namespace graphSNA.UI
         private void RunTraversalAlgorithm(Node startNode)
         {
             string algo = radioDFS.Checked ? "DFS" : "BFS";
+            
+            // Start performance measurement
+            var stopwatch = Stopwatch.StartNew();
             List<Node> resultOrder = controller.TraverseGraph(startNode, algo);
+            stopwatch.Stop();
 
             if (resultOrder.Count > 0)
             {
@@ -213,8 +249,16 @@ namespace graphSNA.UI
                 sb.AppendLine($"Ziyaret Edilen Düğüm Sayısı: {resultOrder.Count}");
                 sb.AppendLine("Gezinme Sırası:");
 
-                string flow = string.Join("->", resultOrder.Select(n => n.Name));
+                string flow = string.Join(" → ", resultOrder.Select(n => n.Name));
                 sb.AppendLine(flow);
+
+                // Append performance metrics
+                sb.AppendLine();
+                sb.AppendLine("───────────────────────────");
+                sb.AppendLine("[PERFORMANS METRİKLERİ]");
+                sb.AppendLine($"İşlem Süresi: {FormatElapsedTime(stopwatch)}");
+                sb.AppendLine($"Düğüm Sayısı: {controller.ActiveGraph.Nodes.Count}");
+                sb.AppendLine($"Kenar Sayısı: {controller.ActiveGraph.Edges.Count}");
 
                 DisplayResult(sb.ToString());
             }
@@ -229,7 +273,11 @@ namespace graphSNA.UI
                 return;
             }
 
+            // Start performance measurement
+            var stopwatch = Stopwatch.StartNew();
             int colorCount = controller.ColorGraph();
+            stopwatch.Stop();
+            
             panel1.Invalidate();
 
             // --- GENERATE LEGEND ---
@@ -255,8 +303,16 @@ namespace graphSNA.UI
                 string exampleNodes = string.Join(", ", group.Take(3).Select(n => n.Name));
                 if (group.Count() > 3) exampleNodes += ", ...";
 
-                sb.AppendLine($"- {colorName.PadRight(15)}: {group.Count()} Düğüm ({exampleNodes})");
+                sb.AppendLine($"  • {colorName.PadRight(12)}: {group.Count()} Düğüm ({exampleNodes})");
             }
+
+            // Append performance metrics
+            sb.AppendLine();
+            sb.AppendLine("───────────────────────────");
+            sb.AppendLine("[PERFORMANS METRİKLERİ]");
+            sb.AppendLine($"İşlem Süresi: {FormatElapsedTime(stopwatch)}");
+            sb.AppendLine($"Düğüm Sayısı: {controller.ActiveGraph.Nodes.Count}");
+            sb.AppendLine($"Kenar Sayısı: {controller.ActiveGraph.Edges.Count}");
 
             DisplayResult(sb.ToString());
         }
