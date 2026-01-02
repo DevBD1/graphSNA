@@ -100,24 +100,25 @@ namespace graphSNA.UI
 
         private void CreateLogBox()
         {
-            // Enable scrolling for the main container
-            this.flowLayoutPanel1.AutoScroll = true;
-
-            GroupBox grpResult = new GroupBox();
-            grpResult.Text = "Result View";
-            grpResult.Size = new Size(230, 300);
+            // Create a new tab for Results
+            TabPage tabResults = new TabPage();
+            tabResults.Text = "Sonuçlar";
+            tabResults.BackColor = SystemColors.ActiveCaption;
+            tabResults.Padding = new Padding(5);
 
             rtbLogs = new RichTextBox();
             rtbLogs.Dock = DockStyle.Fill;
             rtbLogs.ReadOnly = true;
             rtbLogs.BackColor = Color.White;
-            rtbLogs.BorderStyle = BorderStyle.FixedSingle;
-            rtbLogs.Font = new Font("Consolas", 8);
+            rtbLogs.BorderStyle = BorderStyle.None;
+            rtbLogs.Font = new Font("Consolas", 10F, FontStyle.Regular);
             rtbLogs.WordWrap = true;
+            rtbLogs.ScrollBars = RichTextBoxScrollBars.Vertical;
 
-            grpResult.Controls.Add(rtbLogs);
+            tabResults.Controls.Add(rtbLogs);
 
-            this.flowLayoutPanel1.Controls.Add(grpResult);
+            // Add the new tab to existing TabControl
+            this.tabControl1.Controls.Add(tabResults);
         }
 
         // --- ZOOM LOGIC ---
