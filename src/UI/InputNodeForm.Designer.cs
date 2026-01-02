@@ -24,106 +24,106 @@
 
         private void InitializeComponent()
         {
-            this.label1 = new System.Windows.Forms.Label();
-            this.txtName = new System.Windows.Forms.TextBox();
-            this.label2 = new System.Windows.Forms.Label();
-            this.txtActivity = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
-            this.txtInteraction = new System.Windows.Forms.TextBox();
-            this.btnOk = new System.Windows.Forms.Button();
-            this.btnCancel = new System.Windows.Forms.Button();
-            this.SuspendLayout();
+            label1 = new Label();
+            txtName = new TextBox();
+            label2 = new Label();
+            txtActivity = new TextBox();
+            label3 = new Label();
+            txtInteraction = new TextBox();
+            btnOk = new Button();
+            btnCancel = new Button();
+            SuspendLayout();
             // 
             // label1
             // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(20, 25);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(32, 15);
-            this.label1.TabIndex = 0;
-            this.label1.Text = "İsim:";
+            label1.AutoSize = true;
+            label1.Location = new Point(20, 25);
+            label1.Name = "label1";
+            label1.Size = new Size(32, 15);
+            label1.TabIndex = 0;
+            label1.Text = "İsim:";
             // 
             // txtName
             // 
-            this.txtName.Location = new System.Drawing.Point(140, 22);
-            this.txtName.Name = "txtName";
-            this.txtName.Size = new System.Drawing.Size(180, 23);
-            this.txtName.TabIndex = 1;
+            txtName.Location = new Point(140, 22);
+            txtName.Name = "txtName";
+            txtName.Size = new Size(180, 23);
+            txtName.TabIndex = 1;
             // 
             // label2
             // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(20, 65);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(80, 15);
-            this.label2.TabIndex = 2;
-            this.label2.Text = "Activity (0-1):";
+            label2.AutoSize = true;
+            label2.Location = new Point(20, 65);
+            label2.Name = "label2";
+            label2.Size = new Size(90, 15);
+            label2.TabIndex = 2;
+            label2.Text = "Activity (0-100):";
             // 
             // txtActivity
             // 
-            this.txtActivity.Location = new System.Drawing.Point(140, 62);
-            this.txtActivity.Name = "txtActivity";
-            this.txtActivity.Size = new System.Drawing.Size(180, 23);
-            this.txtActivity.TabIndex = 3;
+            txtActivity.Location = new Point(140, 62);
+            txtActivity.Name = "txtActivity";
+            txtActivity.Size = new Size(180, 23);
+            txtActivity.TabIndex = 3;
             // 
             // label3
             // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(20, 105);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(98, 15);
-            this.label3.TabIndex = 4;
-            this.label3.Text = "Interaction (0-1):";
+            label3.AutoSize = true;
+            label3.Location = new Point(20, 105);
+            label3.Name = "label3";
+            label3.Size = new Size(107, 15);
+            label3.TabIndex = 4;
+            label3.Text = "Interaction (0-100):";
             // 
             // txtInteraction
             // 
-            this.txtInteraction.Location = new System.Drawing.Point(140, 102);
-            this.txtInteraction.Name = "txtInteraction";
-            this.txtInteraction.Size = new System.Drawing.Size(180, 23);
-            this.txtInteraction.TabIndex = 5;
+            txtInteraction.Location = new Point(140, 102);
+            txtInteraction.Name = "txtInteraction";
+            txtInteraction.Size = new Size(180, 23);
+            txtInteraction.TabIndex = 5;
             // 
             // btnOk
             // 
-            this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(50, 160);
-            this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(100, 30);
-            this.btnOk.TabIndex = 6;
-            this.btnOk.Text = "Kaydet";
-            this.btnOk.UseVisualStyleBackColor = true;
-            this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
+            btnOk.DialogResult = DialogResult.OK;
+            btnOk.Location = new Point(50, 160);
+            btnOk.Name = "btnOk";
+            btnOk.Size = new Size(100, 30);
+            btnOk.TabIndex = 6;
+            btnOk.Text = "Kaydet";
+            btnOk.UseVisualStyleBackColor = true;
+            btnOk.Click += btnOk_Click;
             // 
             // btnCancel
             // 
-            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(180, 160);
-            this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(100, 30);
-            this.btnCancel.TabIndex = 7;
-            this.btnCancel.Text = "İptal";
-            this.btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.DialogResult = DialogResult.Cancel;
+            btnCancel.Location = new Point(180, 160);
+            btnCancel.Name = "btnCancel";
+            btnCancel.Size = new Size(100, 30);
+            btnCancel.TabIndex = 7;
+            btnCancel.Text = "İptal";
+            btnCancel.UseVisualStyleBackColor = true;
             // 
             // InputNodeForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
-            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(350, 211);
-            this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnOk);
-            this.Controls.Add(this.txtInteraction);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.txtActivity);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.txtName);
-            this.Controls.Add(this.label1);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
-            this.MaximizeBox = false;
-            this.MinimizeBox = false;
-            this.Name = "InputNodeForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
-            this.Text = "InputNodeForm";
-            this.ResumeLayout(false);
-            this.PerformLayout();
+            AutoScaleDimensions = new SizeF(7F, 15F);
+            AutoScaleMode = AutoScaleMode.Font;
+            ClientSize = new Size(350, 211);
+            Controls.Add(btnCancel);
+            Controls.Add(btnOk);
+            Controls.Add(txtInteraction);
+            Controls.Add(label3);
+            Controls.Add(txtActivity);
+            Controls.Add(label2);
+            Controls.Add(txtName);
+            Controls.Add(label1);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
+            MaximizeBox = false;
+            MinimizeBox = false;
+            Name = "InputNodeForm";
+            StartPosition = FormStartPosition.CenterParent;
+            Text = "InputNodeForm";
+            ResumeLayout(false);
+            PerformLayout();
         }
 
         #endregion
