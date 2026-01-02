@@ -29,41 +29,199 @@ Uygulama, kullanıcı özelliklerine (aktiflik, etkileşim sayısı, bağlantı 
 * **Veri Depolama:** Ağ yapısının JSON/CSV formatında saklanması ve taşınabilmesi.
 ---
 ## 3. Algoritmalar
-### 3.1.1 Algorithm.cs 
-Algorithm.cs Sınıfının Sorumlulukları:
-
-- Hesaplama Motoru: Projenin tüm matematiksel işlemlerini yapan sınıftır.
-- Yol Bulma: İki kişi arasındaki en kısa/maliyetli yolu Dijkstra ve A* algoritmalarıyla hesaplar.
-- Ağ Taraması: Bir kişiden ulaşılabilecek herkesi BFS veya DFS ile bulur.
-- Analiz: Ağdaki kopuk grupları (bağlı bileşenler) ve en popüler kişileri (merkezilik) tespit eder.
-- Salt Okunur: Graf yapısını bozmaz, sadece analiz edip sonuç raporlar.
+### 3.1.1 Breadth-First Search (BFS)
+Çalışma Mantığı: FS, bir graf üzerinde seviye seviye ilerleyen bir arama algoritmasıdır. Başlangıç düğümünden başlayarak önce tüm komşuları ziyaret eder, ardından komşuların komşularına geçer. FIFO (First In First Out) prensibiyle çalışan Queue (Kuyruk) veri yapısı kullanır.
+Adımlar:
+1.	Başlangıç düğümünü kuyruğa ekle ve ziyaret edildi olarak işaretle
+2.	Kuyruktan bir düğüm çıkar, sonuç listesine ekle
+3.	Bu düğümün ziyaret edilmemiş tüm komşularını kuyruğa ekle
+4.	Kuyruk boşalana kadar 2-3 adımlarını tekrarla
 
 ```mermaid
-classDiagram
-    class Algorithm {
-        <<static>>
-        %% --- Gezinme Algoritmaları ---
-        +BFS(Graph, startNode) : List~Node~
-        +DFS(Graph, startNode) : List~Node~
-        
-        %% --- En Kısa Yol Algoritmaları ---
-        +Dijkstra(Graph, start, end) : List~Node~
-        +AStar(Graph, start, end) : List~Node~
-        
-        %% --- Analiz Algoritmaları ---
-        +GetConnectedComponents(Graph) : List~List~Node~~
-        +CalculateDegreeCentrality(Graph) : Dictionary~Node, int~
-    }
-    
-    %% İlişki: Algorithm, Graph'ı kullanır (Dependency)
-    Algorithm ..> Graph : Okur ve Analiz Eder
-    Algorithm ..> Node : Sonuç Olarak Döndürür
-    
-    note for Algorithm "Veri Tutmaz (Stateless)
-    Sadece Hesaplar"
+flowchart TD
+    A["Start"] --> B["Initialize Queue, Visited Set, Result List"]
+    B --> C["Enqueue startNode"]
+    C --> D["Mark startNode as visited"]
+    D --> E{"Queue empty?"}
+    E -->|Yes| F["Return Result List"]
+    E -->|No| G["Dequeue current node"]
+    G --> H["Add current to Result"]
+    H --> I["Get all neighbors of current"]
+    I --> J{"More unvisited neighbors?"}
+    J -->|Yes| K["Mark neighbor as visited"]
+    K --> L["Enqueue neighbor"]
+    L --> J
+    J -->|No| E
 ```
+### 3.1.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O(V + E) | Her düğüm (V) bir kez ziyaret edilir, her kenar (E) bir kez kontrol edilir |
+| Alan Karmaşıklığı  | O(V)     | Queue ve Visited set en fazla V eleman tutar                               |
+
+### 3.1.3 Literatür İncelemesi
+- İlk Tanım: Edward F. Moore (1959) - Labirent çözümü için geliştirildi
+- Kullanım Alanları:
+- - Sosyal ağlarda "arkadaş önerisi" (2 derece uzaklıktaki kişiler)
+- - GPS navigasyonunda en az aktarmalı rota bulma
+- - Web crawler'larda sayfa indeksleme
+- - Ağ yayılımı (broadcast) protokolleri
+- Kaynak: Cormen, T. H., et al. "Introduction to Algorithms" (2009), Chapter 22.2
+
 ---
-# 4. Sınıflar ve Modüller
+### 3.2.1 DFS (Depth-First Search) - Derinlik Öncelikli Arama
+Çalışma Mantığı: DFS, bir dalı sonuna kadar takip eden ve ardından geri dönerek diğer dalları keşfeden bir arama algoritmasıdır. LIFO (Last In First Out) prensibiyle çalışan Stack (Yığın) veri yapısı kullanır. Bir yolda gidebildiği kadar derine iner, çıkmaza girince geri döner (backtracking).
+Adımlar:
+1.	Başlangıç düğümünü stack'e ekle
+2.	Stack'ten bir düğüm çıkar (pop)
+3.	Ziyaret edilmediyse: ziyaret edildi olarak işaretle, sonuç listesine ekle
+4.	Tüm komşularını stack'e ekle
+5.	Stack boşalana kadar 2-4 adımlarını tekrarla
+
+```mermaid
+flowchart TD
+    A["Start"] --> B["Initialize Stack, Visited Set, Result List"]
+    B --> C["Push startNode to Stack"]
+    C --> D{"Stack empty?"}
+    D -->|Yes| E["Return Result List"]
+    D -->|No| F["Pop current node from Stack"]
+    F --> G{"current visited?"}
+    G -->|Yes| D
+    G -->|No| H["Mark current as visited"]
+    H --> I["Add current to Result"]
+    I --> J["Get all neighbors of current"]
+    J --> K["Reverse neighbors order"]
+    K --> L{"More neighbors?"}
+    L -->|Yes| M{"Neighbor visited?"}
+    M -->|Yes| L
+    M -->|No| N["Push neighbor to Stack"]
+    N --> L
+    L -->|No| D
+```
+### 3.2.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O(V + E) | Her düğüm ve kenar bir kez işlenir |
+| Alan Karmaşıklığı  | O(V)     | Stack derinliği en kötü durumda V olabilir                               |
+
+### 3.2.3 Literatür İncelemesi
+- İlk Tanım: Charles Pierre Trémaux (19. yüzyıl) - Labirent çözümü
+- Kullanım Alanları:
+- - Topolojik sıralama (görev bağımlılıkları)
+- - Döngü tespiti (cycle detection)
+- - Bağlı bileşen analizi
+- - Puzzle çözümü (Sudoku, satranç)
+- - Derleyicilerde syntax tree traversal
+- Kaynak: Tarjan, R. E. "Depth-First Search and Linear Graph Algorithms" (1972), SIAM Journal on Computing
+
+---
+### 3.3.1 Dijkstra Algoritması
+Çalışma Mantığı: Dijkstra, ağırlıklı graflarda tek bir kaynaktan diğer tüm düğümlere en kısa yolu bulan bir algoritmadır. Greedy (Açgözlü) yaklaşım kullanır: her adımda en düşük maliyetli düğümü seçer. Priority Queue (Öncelik Kuyruğu) veri yapısı ile optimize edilir.
+Adımlar:
+1.	Başlangıç düğümünün mesafesini 0, diğerlerini ∞ olarak ayarla
+2.	Priority Queue'dan en küçük mesafeli düğümü çıkar
+3.	Bu düğümün her komşusu için: yeni mesafe daha kısaysa güncelle
+4.	Hedef düğüme ulaşana veya kuyruk boşalana kadar tekrarla
+5.	Yolu geriye doğru takip ederek reconstruct et
+
+```mermaid
+flowchart TD
+    A["Start"] --> B["Set distance[start] = 0"]
+    B --> C["Set distance[others] = ∞"]
+    C --> D["Enqueue start with priority 0"]
+    D --> E{"PriorityQueue empty?"}
+    E -->|Yes| F["Return: No path found"]
+    E -->|No| G["Dequeue node with minimum distance"]
+    G --> H{"current == goal?"}
+    H -->|Yes| I["Reconstruct path using previous map"]
+    I --> J["Return path and total cost"]
+    H -->|No| K["For each neighbor of current"]
+    K --> L["Calculate newDist = distance[current] + edgeWeight"]
+    L --> M{"newDist < distance[neighbor]?"}
+    M -->|Yes| N["Update distance[neighbor] = newDist"]
+    N --> O["Set previous[neighbor] = current"]
+    O --> P["Enqueue neighbor with newDist"]
+    P --> Q{"More neighbors?"}
+    M -->|No| Q
+    Q -->|Yes| K
+    Q -->|No| E
+```
+### 3.3.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O((V + E) log V) | Priority Queue ile; her düğüm/kenar için log V'lik işlem |
+| Alan Karmaşıklığı  | O(V)     | Distance ve Previous dictionary'leri                               |
+
+### 3.3.3 Literatür İncelemesi
+- İlk Tanım: Edsger W. Dijkstra (1956) - "A note on two problems in connexion with graphs"
+- Kısıtlama: Negatif ağırlıklı kenarlarda çalışmaz (Bellman-Ford gerekir)
+- Kullanım Alanları:
+- - Google Maps, Yandex Navigasyon rota hesaplama
+- - Network routing protokolleri (OSPF, IS-IS)
+- - Telekomünikasyonda çağrı yönlendirme
+- - Oyunlarda NPC pathfinding
+- Kaynak: Dijkstra, E. W. "A note on two problems in connexion with graphs" (1959), Numerische Mathematik
+
+---
+### 3.4.1 A* (A-Star) Algoritması
+Çalışma Mantığı: A*, Dijkstra'nın geliştirilmiş halidir. Heuristic (Sezgisel) fonksiyon kullanarak hedefe yönelik arama yapar. 
+Değerlendirme fonksiyonu: f(n) = g(n) + h(n)
+- g(n): Başlangıçtan n'e olan gerçek maliyet
+- h(n): n'den hedefe tahmini maliyet (heuristic)
+Projede Euclidean Distance (Öklid Mesafesi) heuristic olarak kullanılmıştır.
+Adımlar:
+1.	Dijkstra ile aynı başlangıç
+2.	Priority Queue'ya eklerken: f = g + h değerini kullan
+3.	Hedefe yakın düğümler öncelikli işlenir
+4.	Optimal yol garantisi (admissible heuristic ile)
+
+```mermaid
+flowchart TD
+    A["Start"] --> B["Set g[start] = 0, g[others] = ∞"]
+    B --> C["Calculate h[start] = Euclidean distance to goal"]
+    C --> D["Enqueue start with priority f = g + h"]
+    D --> E{"PriorityQueue empty?"}
+    E -->|Yes| F["Return: No path found"]
+    E -->|No| G["Dequeue node with minimum f value"]
+    G --> H{"current == goal?"}
+    H -->|Yes| I["Reconstruct path"]
+    I --> J["Return path and g[goal] as cost"]
+    H -->|No| K["For each neighbor of current"]
+    K --> L["Calculate newG = g[current] + edgeWeight"]
+    L --> M{"newG < g[neighbor]?"}
+    M -->|Yes| N["Update g[neighbor] = newG"]
+    N --> O["Set previous[neighbor] = current"]
+    O --> P["Calculate f = newG + h[neighbor]"]
+    P --> Q["Enqueue neighbor with priority f"]
+    Q --> R{"More neighbors?"}
+    M -->|No| R
+    R -->|Yes| K
+    R -->|No| E
+```
+### 3.4.2 Karmaşıklık Analizi
+| Metrik             | Değer    | Açıklama                                                                   |
+|--------------------|----------|----------------------------------------------------------------------------|
+| Zaman Karmaşıklığı | O((V + E) log V) | En kötü durumda Dijkstra ile aynı |
+| Alan Karmaşıklığı  | O(V)     | Distance, Previous ve Priority Queue Pratikte Dijkstra'dan hızlı Heuristic sayesinde daha az düğüm ziyaret edilir |
+
+### 3.4.3 Literatür İncelemesi
+- İlk Tanım: Peter Hart, Nils Nilsson, Bertram Raphael (1968) - Stanford Research Institute
+- Makale: "A Formal Basis for the Heuristic Determination of Minimum Cost Paths"
+- Heuristic Türleri:
+- - Euclidean Distance: √((x₁-x₂)² + (y₁-y₂)²)
+- - Manhattan Distance: |x₁-x₂| + |y₁-y₂|
+- - Chebyshev Distance: max(|x₁-x₂|, |y₁-y₂|)
+- Kullanım Alanları:
+- - Video oyunlarında pathfinding (Unity, Unreal Engine)
+- - Robotik navigasyon
+- - Harita uygulamalarında gerçek zamanlı rota
+- Kaynak: Hart, P. E., et al. "A Formal Basis for the Heuristic Determination of Minimum Cost Paths" (1968), IEEE Transactions on Systems Science and Cybernetics
+
+---
+##
+
+---
+## 4. Sınıflar ve Modüller
 ## 4.1 Node.cs 
 Node.cs Sınıfının Sorumlulukları:
 - Veri Modeli: Sosyal ağdaki her bir kullanıcıyı temsil eder.
