@@ -49,13 +49,13 @@ namespace graphSNA.UI
         // --- 1. FILE OPERATIONS ---
         private void ImportCSV(object sender, EventArgs e)
         {
-            OpenFileDialog ofd = new OpenFileDialog { Filter = "CSV Files|*.csv" };
+            OpenFileDialog ofd = new OpenFileDialog { Filter = "CSV Dosyaları|*.csv" };
             if (ofd.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
                     controller.LoadGraph(ofd.FileName);
-                    groupBox1.Text = $"File: {Path.GetFileName(ofd.FileName)}";
+                    groupBox1.Text = $"Dosya: {Path.GetFileName(ofd.FileName)}";
                     controller.RecalculateAllWeights();
 
                     // Distributes nodes across the screen randomly and uniformly
@@ -103,18 +103,18 @@ namespace graphSNA.UI
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"Hata: {ex.Message}", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
 
         private void ExportCSV(object sender, EventArgs e)
         {
-            SaveFileDialog sfd = new SaveFileDialog { Filter = "CSV Files|*.csv" };
+            SaveFileDialog sfd = new SaveFileDialog { Filter = "CSV Dosyaları|*.csv" };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 controller.SaveGraph(sfd.FileName);
-                DisplayResult($"Exported: {Path.GetFileName(sfd.FileName)}");
+                DisplayResult($"Dışa Aktarıldı: {Path.GetFileName(sfd.FileName)}");
             }
         }
 
@@ -123,7 +123,7 @@ namespace graphSNA.UI
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 2)
             {
-                MessageBox.Show("Please load a graph first.", "Warning");
+                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
                 return;
             }
 
@@ -132,7 +132,7 @@ namespace graphSNA.UI
             startNodeForPathFinding = null;
             endNodeForPathFinding = null;
 
-            MessageBox.Show("Please select the START node from the graph.", "Step 1");
+            MessageBox.Show("Lütfen graftan BAŞLANGIÇ düğümünü seçin.", "Adım 1");
         }
 
         private void HandleShortestPathSelection(Node clickedNode)
@@ -143,7 +143,7 @@ namespace graphSNA.UI
                 {
                     startNodeForPathFinding = clickedNode;
                     selectedNode = clickedNode;
-                    MessageBox.Show($"Start: {clickedNode.Name}\nNow select the TARGET node.", "Step 2");
+                    MessageBox.Show($"Başlangıç: {clickedNode.Name}\nŞimdi HEDEF düğümünü seçin.", "Adım 2");
                 }
             }
             else if (endNodeForPathFinding == null)
@@ -156,7 +156,7 @@ namespace graphSNA.UI
                 }
                 else if (clickedNode == startNodeForPathFinding)
                 {
-                    MessageBox.Show("Start and End nodes cannot be the same!", "Error");
+                    MessageBox.Show("Başlangıç ve hedef düğüm aynı olamaz!", "Hata");
                 }
             }
             panel1.Invalidate();
@@ -173,14 +173,14 @@ namespace graphSNA.UI
                 txtCost.Text = $"{result.cost:F2}";
 
                 string pathStr = string.Join("->", result.path.Select(n => n.Name)); // Compact arrows
-                DisplayResult($"Algorithm: {algoType}\nFrom: {startNodeForPathFinding.Name}\nTo: {endNodeForPathFinding.Name}\nTotal Cost: {result.cost:F2}\nPath: {pathStr}");
+                DisplayResult($"Algoritma: {algoType}\nBaşlangıç: {startNodeForPathFinding.Name}\nHedef: {endNodeForPathFinding.Name}\nToplam Maliyet: {result.cost:F2}\nYol: {pathStr}");
             }
             else
             {
                 controller.HighlightedPath = null;
-                txtCost.Text = "None";
-                DisplayResult($"Algorithm: {algoType}\nResult: No path found.");
-                MessageBox.Show("No path found.", "Result");
+                txtCost.Text = "Yok";
+                DisplayResult($"Algoritma: {algoType}\nSonuç: Yol bulunamadı.");
+                MessageBox.Show("Yol bulunamadı.", "Sonuç");
             }
             panel1.Invalidate(); // Trigger redraw
         }
@@ -190,14 +190,14 @@ namespace graphSNA.UI
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count < 1)
             {
-                MessageBox.Show("Please load a graph first.");
+                MessageBox.Show("Lütfen önce bir graf yükleyin.");
                 return;
             }
 
             isSelectingForTraversal = true;
             isSelectingNodesForPathFinding = false;
 
-            MessageBox.Show("Click on a START node to begin traversal.", "Traversal Mode");
+            MessageBox.Show("Gezinmeye başlamak için bir BAŞLANGIÇ düğümüne tıklayın.", "Gezinme Modu");
         }
 
         private void RunTraversalAlgorithm(Node startNode)
@@ -208,10 +208,10 @@ namespace graphSNA.UI
             if (resultOrder.Count > 0)
             {
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Algorithm: {algo}");
-                sb.AppendLine($"Start Node: {startNode.Name}");
-                sb.AppendLine($"Visited Nodes: {resultOrder.Count}");
-                sb.AppendLine("Traversal Order:");
+                sb.AppendLine($"Algoritma: {algo}");
+                sb.AppendLine($"Başlangıç Düğümü: {startNode.Name}");
+                sb.AppendLine($"Ziyaret Edilen Düğüm Sayısı: {resultOrder.Count}");
+                sb.AppendLine("Gezinme Sırası:");
 
                 string flow = string.Join("->", resultOrder.Select(n => n.Name));
                 sb.AppendLine(flow);
@@ -225,7 +225,7 @@ namespace graphSNA.UI
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
             {
-                MessageBox.Show("Please load a graph first.", "Warning");
+                MessageBox.Show("Lütfen önce bir graf yükleyin.", "Uyarı");
                 return;
             }
 
@@ -234,11 +234,11 @@ namespace graphSNA.UI
 
             // --- GENERATE LEGEND ---
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine("Algorithm: Welsh-Powell Coloring");
-            sb.AppendLine("Status: Success");
-            sb.AppendLine($"Chromatic Number (Total Colors): {colorCount}");
+            sb.AppendLine("Algoritma: Welsh-Powell Renklendirme");
+            sb.AppendLine("Durum: Başarılı");
+            sb.AppendLine($"Kromatik Sayı (Toplam Renk): {colorCount}");
             sb.AppendLine("");
-            sb.AppendLine("[LEGEND - Color Distribution]");
+            sb.AppendLine("[LEJANT - Renk Dağılımı]");
 
             // Group nodes by color to count usage
             var colorGroups = controller.ActiveGraph.Nodes
@@ -255,7 +255,7 @@ namespace graphSNA.UI
                 string exampleNodes = string.Join(", ", group.Take(3).Select(n => n.Name));
                 if (group.Count() > 3) exampleNodes += ", ...";
 
-                sb.AppendLine($"- {colorName.PadRight(15)}: {group.Count()} Nodes ({exampleNodes})");
+                sb.AppendLine($"- {colorName.PadRight(15)}: {group.Count()} Düğüm ({exampleNodes})");
             }
 
             DisplayResult(sb.ToString());
@@ -275,7 +275,7 @@ namespace graphSNA.UI
         {
             if (controller.ActiveGraph == null) return;
             UpdateStatsTable();
-            MessageBox.Show("List has been updated.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("Liste güncellendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void UpdateStatsTable()
@@ -289,10 +289,10 @@ namespace graphSNA.UI
             dataGridView1.Columns.Clear();
 
             // Columns
-            dataGridView1.Columns.Add("Rank", "Rank");
-            dataGridView1.Columns.Add("Name", "Name");
-            dataGridView1.Columns.Add("Degree", "Degree");
-            dataGridView1.Columns.Add("Score", "Centrality Score");
+            dataGridView1.Columns.Add("Rank", "Sıra");
+            dataGridView1.Columns.Add("Name", "İsim");
+            dataGridView1.Columns.Add("Degree", "Derece");
+            dataGridView1.Columns.Add("Score", "Merkezilik Puanı");
 
             int rank = 1;
             foreach (var node in topNodes)
@@ -310,19 +310,27 @@ namespace graphSNA.UI
             graphContextMenu = new ContextMenuStrip();
 
             // --- CREATE MENU ITEMS ---
-            var itemAdd = new ToolStripMenuItem("Add New Person");
-            var itemDeleteNode = new ToolStripMenuItem("Delete Selected Person");
-            var itemEditNode = new ToolStripMenuItem("Edit (Properties)");
-            var itemDeleteEdge = new ToolStripMenuItem("Delete Connection");
+            var itemAdd = new ToolStripMenuItem("Yeni Kişi Ekle");
+            var itemDeleteNode = new ToolStripMenuItem("Seçili Kişiyi Sil");
+            var itemEditNode = new ToolStripMenuItem("Düzenle (Özellikler)");
+            var itemDeleteEdge = new ToolStripMenuItem("Bağlantıyı Sil");
 
             // --- 1. ADD NEW PERSON ---
             itemAdd.Click += (s, e) => {
-                InputNodeForm form = new InputNodeForm("Add New Person");
+                InputNodeForm form = new InputNodeForm("Yeni Kişi Ekle");
 
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    // Add via controller (lastRightClickPoint: location where right-clicked)
-                    controller.AddNode(form.NodeName, form.Activity, form.Interaction, 0, lastRightClickPoint);
+                    // Add via controller (returns null if duplicate)
+                    var newNode = controller.AddNode(form.NodeName, form.Activity, form.Interaction, 0, lastRightClickPoint);
+                    
+                    if (newNode == null)
+                    {
+                        MessageBox.Show($"'{form.NodeName}' isimli bir kişi zaten mevcut!", 
+                            "Yinelenen İsim", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    
                     panel1.Invalidate();
                 }
             };
@@ -332,8 +340,8 @@ namespace graphSNA.UI
                 if (selectedNode != null)
                 {
                     var result = MessageBox.Show(
-                        $"Are you sure you want to delete '{selectedNode.Name}' and all associated connections?",
-                        "Confirm Deletion",
+                        $"'{selectedNode.Name}' kişisini ve tüm bağlantılarını silmek istediğinizden emin misiniz?",
+                        "Silme Onayı",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Warning);
 
@@ -351,7 +359,7 @@ namespace graphSNA.UI
             itemEditNode.Click += (s, e) => {
                 if (selectedNode != null)
                 {
-                    InputNodeForm form = new InputNodeForm("Edit Person");
+                    InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
 
                     // Load existing data into form
                     form.NodeName = selectedNode.Name;
@@ -360,12 +368,20 @@ namespace graphSNA.UI
 
                     if (form.ShowDialog() == DialogResult.OK)
                     {
-                        // Update
-                        controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
+                        try
+                        {
+                            // Update (throws exception if duplicate)
+                            controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
 
-                        // Update the right panel immediately
-                        UpdateNodeInfoPanel(selectedNode);
-                        panel1.Invalidate();
+                            // Update the right panel immediately
+                            UpdateNodeInfoPanel(selectedNode);
+                            panel1.Invalidate();
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            MessageBox.Show($"'{form.NodeName}' isimli bir kişi zaten mevcut!", 
+                                "Yinelenen İsim", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
                     }
                 }
             };
@@ -397,7 +413,7 @@ namespace graphSNA.UI
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
             {
-                MessageBox.Show("Please load or create a graph first.");
+                MessageBox.Show("Lütfen önce bir graf yükleyin veya oluşturun.");
                 return;
             }
 
@@ -446,12 +462,12 @@ namespace graphSNA.UI
             // 1. Safety Check: Is a node selected?
             if (selectedNode == null)
             {
-                MessageBox.Show("Please select the person you want to edit first.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Lütfen önce düzenlemek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             // 2. Prepare Form
-            InputNodeForm form = new InputNodeForm("Edit Person");
+            InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
 
             // Fill form with current data
             form.NodeName = selectedNode.Name;
@@ -461,17 +477,25 @@ namespace graphSNA.UI
             // 3. Show Form and Wait for Result
             if (form.ShowDialog() == DialogResult.OK)
             {
-                // Update data
-                controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
+                try
+                {
+                    // Update data (throws exception if duplicate)
+                    controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
 
-                // Recalculate edge weights as values have changed!
-                controller.RecalculateAllWeights();
+                    // Recalculate edge weights as values have changed!
+                    controller.RecalculateAllWeights();
 
-                // Update info in the right panel
-                UpdateNodeInfoPanel(selectedNode);
+                    // Update info in the right panel
+                    UpdateNodeInfoPanel(selectedNode);
 
-                // Refresh screen
-                panel1.Invalidate();
+                    // Refresh screen
+                    panel1.Invalidate();
+                }
+                catch (InvalidOperationException)
+                {
+                    MessageBox.Show($"'{form.NodeName}' isimli bir kişi zaten mevcut!", 
+                        "Yinelenen İsim", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
             }
         }
 
@@ -480,14 +504,14 @@ namespace graphSNA.UI
             // 1. Selection Check
             if (selectedNode == null)
             {
-                MessageBox.Show("Please select the person you want to delete first.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Lütfen önce silmek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             // 2. Confirm Deletion
             var result = MessageBox.Show(
-                $"Are you sure you want to delete '{selectedNode.Name}' and all associated connections?",
-                "Confirm Deletion",
+                $"'{selectedNode.Name}' kişisini ve tüm bağlantılarını silmek istediğinizden emin misiniz?",
+                "Silme Onayı",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
 

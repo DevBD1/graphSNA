@@ -30,6 +30,12 @@ namespace graphSNA.UI
         {
             if (ActiveGraph == null) ActiveGraph = new Graph();
 
+            // Check for duplicate name (case-insensitive)
+            if (ActiveGraph.Nodes.Any(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            {
+                return null; // Duplicate name found, return null to indicate failure
+            }
+
             // 1. New ID Generation Logic (Auto-Increment)
             int newId = 1; // Start from 1 if there are no nodes
 
@@ -44,7 +50,6 @@ namespace graphSNA.UI
                 newId = maxId + 1;
             }
 
-            // string randomId = Guid.NewGuid().ToString().Substring(0, 8);
             // 2. Create Node with the new ID
             // Node constructor parameter order: (Id, Name, Activity, Interaction)
             Node newNode = new Node(newId.ToString(), name, act, inter);
@@ -74,6 +79,15 @@ namespace graphSNA.UI
         }
         public void UpdateNode(Node node, string newName, float act, float inter)
         {
+            // Check for duplicate name (exclude current node, case-insensitive)
+            bool duplicateExists = ActiveGraph.Nodes.Any(n => 
+                n != node && n.Name.Equals(newName, StringComparison.OrdinalIgnoreCase));
+
+            if (duplicateExists)
+            {
+                throw new InvalidOperationException($"A node with name '{newName}' already exists.");
+            }
+
             node.Name = newName;
             node.Activity = act;
             node.Interaction = inter;
