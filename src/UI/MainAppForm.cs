@@ -5,6 +5,8 @@ using System.Windows.Forms;
 using System.Reflection;
 using System.Linq;
 using graphSNA.Model.Foundation;
+using System.Text;
+using System.Collections.Generic;
 
 namespace graphSNA.UI
 {
@@ -44,6 +46,14 @@ namespace graphSNA.UI
         private bool isUpdatingComboBox = false; // Prevent recursive events
         // ----------------------------
 
+        // --- TRAVERSAL ANIMATION VARIABLES ---
+        private System.Windows.Forms.Timer animationTimer;
+        private List<Node> animationNodes;
+        private int animationCurrentIndex;
+        private Node animationHighlightedNode;
+        private bool isAnimating = false;
+        // -------------------------------------
+
         // Visual settings
         private const int NodeRadius = 8;
         private const int NodeSize = 16;
@@ -69,6 +79,11 @@ namespace graphSNA.UI
                 null, panel1, new object[] { true });
 
             controller = new GraphController();
+
+            // --- INITIALIZE ANIMATION TIMER ---
+            animationTimer = new System.Windows.Forms.Timer();
+            animationTimer.Interval = 1000; // 1000ms between each node
+            animationTimer.Tick += AnimationTimer_Tick;
 
             // --- DYNAMICALLY ADD SEARCH BOX ---
             CreateSearchBox();
@@ -377,11 +392,24 @@ namespace graphSNA.UI
                     finalColor = Color.Yellow;
                     borderPen = new Pen(Color.Red, 2);
                 }
-                // Highlight the node being dragged
                 else if (node == draggingNode)
                 {
                     finalColor = Color.Orange;
                     borderPen = new Pen(Color.DarkOrange, 2);
+                }
+                // Animation: Currently visiting node
+                else if (node == animationHighlightedNode)
+                {
+                    finalColor = Color.Red;
+                    borderPen = new Pen(Color.DarkRed, 3);
+                }
+                // Animation: Already visited nodes
+                else if (isAnimating && animationNodes != null && 
+                         animationCurrentIndex > 0 &&
+                         animationNodes.Take(animationCurrentIndex - 1).Contains(node))
+                {
+                    finalColor = Color.LimeGreen;
+                    borderPen = new Pen(Color.DarkGreen, 2);
                 }
 
                 using (Brush fillBrush = new SolidBrush(finalColor))
@@ -713,6 +741,74 @@ namespace graphSNA.UI
             cmbNodeSearch.SelectedIndex = -1;
             cmbNodeSearch.Text = "";
             isUpdatingComboBox = false;
+        }
+
+        private void AnimationTimer_Tick(object sender, EventArgs e)
+        {
+            if (animationNodes == null || animationCurrentIndex >= animationNodes.Count)
+            {
+                // Animation complete
+                StopTraversalAnimation();
+                return;
+            }
+
+            // Highlight current node
+            animationHighlightedNode = animationNodes[animationCurrentIndex];
+            animationCurrentIndex++;
+
+            // Update progress in result panel
+            UpdateAnimationProgress();
+
+            panel1.Invalidate();
+        }
+
+        private void UpdateAnimationProgress()
+        {
+            if (animationHighlightedNode == null) return;
+
+            string algo = radioDFS.Checked ? "DFS" : "BFS";
+
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine("[ANIMASYON DEVAM EDIYOR]");
+            sb.AppendLine($"Algoritma: {algo}");
+            sb.AppendLine($"Adim: {animationCurrentIndex} / {animationNodes.Count}");
+            sb.AppendLine();
+            sb.AppendLine("Ziyaret Sirasi:");
+
+            for (int i = 0; i < animationCurrentIndex; i++)
+            {
+                string marker = (i == animationCurrentIndex - 1) ? ">> " : "   ";
+                sb.AppendLine($"{marker}{i + 1}. {animationNodes[i].Name}");
+            }
+
+            DisplayResult(sb.ToString());
+        }
+
+        private void StopTraversalAnimation()
+        {
+            animationTimer.Stop();
+            isAnimating = false;
+            animationHighlightedNode = null;
+
+            // Show final result
+            if (animationNodes != null && animationNodes.Count > 0)
+            {
+                string algo = radioDFS.Checked ? "DFS" : "BFS";
+
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("[ANIMASYON TAMAMLANDI]");
+                sb.AppendLine();
+                sb.AppendLine($"Algoritma: {algo}");
+                sb.AppendLine($"Ziyaret Edilen Dugum Sayisi: {animationNodes.Count}");
+                sb.AppendLine();
+                sb.AppendLine("Gezinme Sirasi:");
+                sb.AppendLine(string.Join(" -> ", animationNodes.Select(n => n.Name)));
+
+                DisplayResult(sb.ToString());
+            }
+
+            animationNodes = null;
+            panel1.Invalidate();
         }
     }
 }

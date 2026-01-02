@@ -239,31 +239,29 @@ namespace graphSNA.UI
         {
             string algo = radioDFS.Checked ? "DFS" : "BFS";
             
-            // Start performance measurement
-            var stopwatch = Stopwatch.StartNew();
+            // Get traversal order
             List<Node> resultOrder = controller.TraverseGraph(startNode, algo);
-            stopwatch.Stop();
 
             if (resultOrder.Count > 0)
             {
+                // Start animation
+                animationNodes = resultOrder;
+                animationCurrentIndex = 0;
+                animationHighlightedNode = null;
+                isAnimating = true;
+
+                // Show starting message
                 StringBuilder sb = new StringBuilder();
-                sb.AppendLine($"Algoritma: {algo}");
-                sb.AppendLine($"Başlangıç Düğümü: {startNode.Name}");
-                sb.AppendLine($"Ziyaret Edilen Düğüm Sayısı: {resultOrder.Count}");
-                sb.AppendLine("Gezinme Sırası:");
-
-                string flow = string.Join(" → ", resultOrder.Select(n => n.Name));
-                sb.AppendLine(flow);
-
-                // Append performance metrics
+                sb.AppendLine($"[{algo} ANIMASYONU BASLATILIYOR]");
                 sb.AppendLine();
-                sb.AppendLine("───────────────────────────");
-                sb.AppendLine("[PERFORMANS METRİKLERİ]");
-                sb.AppendLine($"İşlem Süresi: {FormatElapsedTime(stopwatch)}");
-                sb.AppendLine($"Düğüm Sayısı: {controller.ActiveGraph.Nodes.Count}");
-                sb.AppendLine($"Kenar Sayısı: {controller.ActiveGraph.Edges.Count}");
-
+                sb.AppendLine($"Baslangic Dugumu: {startNode.Name}");
+                sb.AppendLine($"Toplam Dugum: {resultOrder.Count}");
+                sb.AppendLine();
+                sb.AppendLine("Her 0.4 saniyede bir dugum ziyaret edilecek.");
                 DisplayResult(sb.ToString());
+
+                // Start timer
+                animationTimer.Start();
             }
         }
 
