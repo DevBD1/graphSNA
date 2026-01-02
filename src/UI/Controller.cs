@@ -345,5 +345,69 @@ namespace graphSNA.UI
 
             return sb.ToString();
         }
+
+        public string GetAdjacencyListAsString()
+        {
+            if (ActiveGraph == null || ActiveGraph.Nodes.Count == 0)
+                return "Graf verisi bulunamadı.";
+
+            StringBuilder sb = new StringBuilder();
+
+            foreach (var node in ActiveGraph.Nodes)
+            {
+                // 1. Find all edges connected to this node
+                var connections = ActiveGraph.Edges
+                    .Where(e => e.Source == node || e.Target == node)
+                    .Select(e => new
+                    {
+                        Neighbor = (e.Source == node) ? e.Target : e.Source,
+                        Cost = e.Weight
+                    })
+                    .ToList();
+
+                // 2. Format the output: "Node (A) has neighbors..."
+                sb.AppendLine($"[{node.Name}] (Toplam: {connections.Count})");
+
+                if (connections.Count > 0)
+                {
+                    foreach (var conn in connections)
+                    {
+                        sb.AppendLine($"   -> Komşu: {conn.Neighbor.Name.PadRight(10)} | Maliyet: {conn.Cost:F2}");
+                    }
+                }
+                else
+                {
+                    sb.AppendLine("   -> (Komşu yok)");
+                }
+                sb.AppendLine(""); // Empty line for readability
+            }
+
+            return sb.ToString();
+        }
+        // used by Node Info Panel
+        public List<string> GetNeighborsInfo(Node node)
+        {
+            if (ActiveGraph == null || node == null) return new List<string>();
+
+            var infoList = new List<string>();
+
+            // Bu düğüme bağlı tüm kenarları bul
+            var connectedEdges = ActiveGraph.Edges
+                .Where(e => e.Source == node || e.Target == node)
+                .ToList();
+
+            foreach (var edge in connectedEdges)
+            {
+                // Karşıdaki komşu düğümü bul
+                Node neighbor = (edge.Source == node) ? edge.Target : edge.Source;
+
+                // Format: "İsim (Maliyet: 0.85)"
+                infoList.Add($"{neighbor.Name} (Maliyet: {edge.Weight:F2})");
+            }
+
+            if (infoList.Count == 0) infoList.Add("(Komşu yok)");
+
+            return infoList;
+        }
     }
 }

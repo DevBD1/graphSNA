@@ -723,6 +723,16 @@ namespace graphSNA.UI
             textBox2.Text = node.Activity.ToString();
             textBox3.Text = node.Interaction.ToString();
 
+            if (lstNeighbors != null)
+            {
+                lstNeighbors.Items.Clear();
+                var neighbors = controller.GetNeighborsInfo(node);
+                foreach (var item in neighbors)
+                {
+                    lstNeighbors.Items.Add(item);
+                }
+            }
+
             // Update ComboBox selection (without triggering event)
             isUpdatingComboBox = true;
             cmbNodeSearch.SelectedItem = node.Name;
@@ -735,6 +745,9 @@ namespace graphSNA.UI
             textBox1.Text = "";
             textBox2.Text = "";
             textBox3.Text = "";
+
+            // Clear neighbor list
+            if (lstNeighbors != null) lstNeighbors.Items.Clear();
 
             // Clear ComboBox selection
             isUpdatingComboBox = true;

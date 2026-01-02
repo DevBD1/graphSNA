@@ -476,6 +476,14 @@ namespace graphSNA.UI
 
             graphContextMenu.Items.Add(new ToolStripSeparator());
             graphContextMenu.Items.Add(itemShowMatrix);
+
+            // 2. NEW List Item (Adjacency List)
+            var itemShowList = new ToolStripMenuItem("Komşuluk Listesini Göster");
+            itemShowList.Click += (s, e) => {
+                string list = controller.GetAdjacencyListAsString();
+                DisplayResult("[KOMŞULUK LİSTESİ - DETAYLI]\n\n" + list);
+            };
+            graphContextMenu.Items.Add(itemShowList);
         }
 
         private void BtnApplyLayout_Click(object sender, EventArgs e)
