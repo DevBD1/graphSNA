@@ -53,6 +53,19 @@ namespace graphSNA.UI
         }
         public void RemoveNode(Node node)
         {
+            if (node == null) return;
+
+            // Get all neighbors to update their connection counts before the edges are removed
+            var neighbors = ActiveGraph.Edges
+                .Where(e => e.Source == node || e.Target == node)
+                .Select(e => e.Source == node ? e.Target : e.Source)
+                .ToList();
+
+            foreach (var neighbor in neighbors)
+            {
+                neighbor.ConnectionCount--;
+            }
+
             ActiveGraph.RemoveNode(node);
         }
         public void UpdateNode(Node node, string newName, float act, float inter)
@@ -79,9 +92,16 @@ namespace graphSNA.UI
 
         public void RemoveEdge(Node n1, Node n2)
         {
-            ActiveGraph.RemoveEdge(n1, n2);
-            // Optional: Decrement connection counters if needed:
-            // n1.ConnectionCount--; n2.ConnectionCount--;
+            bool exists = ActiveGraph.Edges.Any(e =>
+                (e.Source == n1 && e.Target == n2) ||
+                (e.Source == n2 && e.Target == n1));
+
+            if (exists)
+            {
+                ActiveGraph.RemoveEdge(n1, n2);
+                n1.ConnectionCount--;
+                n2.ConnectionCount--;
+            }
         }
         public bool AddEdge(Node source, Node target)
         {
@@ -98,9 +118,9 @@ namespace graphSNA.UI
             {
                 ActiveGraph.AddEdge(source, target);
 
-                // Optional: Update connection counts
-                // source.ConnectionCount++;
-                // target.ConnectionCount++;
+                // Update connection counts
+                source.ConnectionCount++;
+                target.ConnectionCount++;
 
                 return true; // SUCCESS
             }
