@@ -20,6 +20,7 @@ namespace graphSNA.UI
         /// <summary>
         /// Controller responsible for managing graph data and logic.
         /// </summary>
+        private ListBox lstNeighbors;
         GraphController controller;
         Node selectedNode = null;
         Node startNodeForPathFinding = null;
@@ -77,6 +78,8 @@ namespace graphSNA.UI
             typeof(Panel).InvokeMember("DoubleBuffered",
                 BindingFlags.SetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
                 null, panel1, new object[] { true });
+
+            InitializeNeighborList();
 
             controller = new GraphController();
 
@@ -723,6 +726,18 @@ namespace graphSNA.UI
             textBox2.Text = node.Activity.ToString();
             textBox3.Text = node.Interaction.ToString();
 
+            // 1. Clear previous list
+            lstNeighbors.Items.Clear();
+
+            // 2. Get data from controller
+            var neighbors = controller.GetNeighborsInfo(node);
+
+            // 3. Add to ListBox
+            foreach (var item in neighbors)
+            {
+                lstNeighbors.Items.Add(item);
+            }
+
             // Update ComboBox selection (without triggering event)
             isUpdatingComboBox = true;
             cmbNodeSearch.SelectedItem = node.Name;
@@ -735,6 +750,9 @@ namespace graphSNA.UI
             textBox1.Text = "";
             textBox2.Text = "";
             textBox3.Text = "";
+
+            // Clear neighbor list
+            if (lstNeighbors != null) lstNeighbors.Items.Clear();
 
             // Clear ComboBox selection
             isUpdatingComboBox = true;
@@ -809,6 +827,30 @@ namespace graphSNA.UI
 
             animationNodes = null;
             panel1.Invalidate();
+        }
+
+        private void InitializeNeighborList()
+        {
+            // Create the ListBox
+            lstNeighbors = new ListBox();
+            lstNeighbors.Location = new Point(15, 250); // Position below Interaction textbox
+            lstNeighbors.Size = new Size(480, 120);     // Width matches other controls
+            lstNeighbors.Font = new Font("Segoe UI", 9F, FontStyle.Regular);
+            lstNeighbors.BackColor = Color.WhiteSmoke;
+
+            // Add a Label for it
+            Label lblNeighbors = new Label();
+            lblNeighbors.Text = "Komşular & Maliyetler:";
+            lblNeighbors.AutoSize = true;
+            lblNeighbors.Location = new Point(15, 225); // Just above the listbox
+            lblNeighbors.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+
+            // Add to GroupBox4 (The Node Details panel)
+            this.groupBox4.Controls.Add(lblNeighbors);
+            this.groupBox4.Controls.Add(lstNeighbors);
+
+            // Increase GroupBox height to fit the new list
+            this.groupBox4.Height += 140;
         }
     }
 }
