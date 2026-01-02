@@ -1,36 +1,39 @@
 ﻿using System;
-using System.Drawing; // Required for Point (Location)
+using System.Drawing;
 
 namespace graphSNA.Model.Foundation
 {
     /// <summary>
-    ///  Represents a user (vertex) in the social network graph.
+    /// Represents a user (vertex) in the social network graph.
+    /// Contains user properties and visual attributes for rendering.
     /// </summary>
     public class Node
     {
-        // Unique identifier of each user (e.g., "1", "2", "3", ...)
+        // Unique identifier (e.g., "1", "2", "3")
         public string Id { get; set; }
-        // Nonunique name of the user (e.g., "Ali")
+        
+        // Display name (e.g., "Ali", "Mehmet") - not unique
         public string Name { get; set; }
-        // Numerical features required for dynamic weight calculation
-        public float Activity { get; set; }        // Feature I (Aktiflik)
-        public float Interaction { get; set; }     // Feature II (Etkileşim)
-        public long ConnectionCount { get; set; } // Feature III (Bağlantı Sayısı)
+        
+        // Numerical features for dynamic weight calculation
+        public float Activity { get; set; }        // Feature I: User activity score (0-100)
+        public float Interaction { get; set; }     // Feature II: User interaction score (0-100)
+        public long ConnectionCount { get; set; }  // Feature III: Number of connections (degree)
 
-        public Point Location { get; set; }
-        public Color Color { get; set; } = Color.LightBlue;
+        // Visual properties
+        public Point Location { get; set; }                    // Position on canvas (X, Y)
+        public Color Color { get; set; } = Color.LightBlue;    // Node color (changed by coloring algorithm)
 
-        // Constructor
         public Node(string id, string name, float activity, float interaction)
         {
             Id = id;
             Name = name;
             Activity = activity;
             Interaction = interaction;
-            // ConnectionCount == 0 by default, will be set when edges are added
+            // ConnectionCount starts at 0, updated when edges are added
         }
 
-        // Override ToString to display the Name easily in ListBoxes or Debugging
+        // Used by ListBox and debugging to display node name
         public override string ToString() => Name;
     }
 }

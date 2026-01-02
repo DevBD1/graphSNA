@@ -4,7 +4,11 @@ using System.Linq;
 
 namespace graphSNA.Model.Algorithms
 {
-    // Breadth-First Search implementation
+    /// <summary>
+    /// Breadth-First Search (BFS) traversal algorithm.
+    /// Explores all neighbors at the current depth before moving to the next level.
+    /// Time Complexity: O(V + E) where V = vertices, E = edges.
+    /// </summary>
     public class BFS : IGraphTraversal
     {
         public List<Node> Traverse(Graph graph, Node startNode)
