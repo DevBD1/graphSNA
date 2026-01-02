@@ -7,34 +7,44 @@ using graphSNA.Model.Foundation;
 
 namespace graphSNA.UI
 {
+    /// <summary>
+    ///  Main application window for social network analysis and interactive graph visualization. 
+    ///  Coordinates graph rendering, UI interaction management (zoom/pan), 
+    ///  dynamic layout orchestration, and visual representation of algorithm results.
+    /// </summary>
     public partial class MainAppForm : Form
     {
-        // Global Variables
+        /// <summary>
+        /// Controller responsible for managing graph data and logic.
+        /// </summary>
         GraphController controller;
         Node selectedNode = null;
         Node startNodeForPathFinding = null;
         Node endNodeForPathFinding = null;
         bool isSelectingNodesForPathFinding = false;
         bool isSelectingForTraversal = false;
-        private ContextMenuStrip graphContextMenu; // Sağ tık menüsü
-        private Point lastRightClickPoint; // Tıklanan yerin koordinatı
-        private Point _rightMouseDownLocation; // Sağ tıkın başladığı yer: sag tik ile pan ve menu olaylarini ayirmak icin
+        private ContextMenuStrip graphContextMenu; // Context menu
+        private Point lastRightClickPoint; // Coordinates of the clicked location
+        private Point _rightMouseDownLocation; // Starting point of right click: to distinguish between pan and menu events
 
-        private Node edgeSourceNode = null; // Bağlantının başladığı düğüm
-        private Point currentMousePos;      // Çizim yaparken farenin anlık yeri (Hayalet çizgi için)
-        private bool isDraggingEdge = false; // Şu an kablo çekiyor muyuz?
-        private Edge selectedEdge = null;    // Sağ tıklanan Edge
+        private Node edgeSourceNode = null; // Node where the connection starts
+        private Point currentMousePos;      // Current mouse position during drawing (For ghost line)
+        private bool isDraggingEdge = false; // Are we currently drawing a connection?
+        private Edge selectedEdge = null;    // The Edge that was right-clicked
 
         // Visual settings
         private const int NodeRadius = 8;
         private const int NodeSize = 16;
 
+        // Log Output Control
+        private RichTextBox rtbLogs;
+
         // --- ZOOM & PAN VARIABLES ---
         private float zoomFactor = 1.0f;
         private float panOffsetX = 0.0f;
         private float panOffsetY = 0.0f;
-        private Point panStartPoint;           // Pan işleminin başladığı nokta
-        private bool isPanning = false;        // Şu an kaydırma yapıyor muyuz?
+        private Point panStartPoint;           // Starting point of the pan operation
+        private bool isPanning = false;        // Are we currently panning?
         // ----------------------------
 
         public MainAppForm()
@@ -47,6 +57,9 @@ namespace graphSNA.UI
                 null, panel1, new object[] { true });
 
             controller = new GraphController();
+
+            // --- DYNAMICALLY ADD LOG BOX ---
+            CreateLogBox();
 
             RegisterEvents();
 
@@ -67,6 +80,46 @@ namespace graphSNA.UI
             InitializeContextMenu();
         }
 
+        public void DisplayResult(string message)
+        {
+            if (rtbLogs.InvokeRequired)
+            {
+                rtbLogs.Invoke(new Action<string>(DisplayResult), message);
+                return;
+            }
+
+            rtbLogs.Clear(); // Always clear previous result for a clean look
+            rtbLogs.SelectionFont = new Font("Consolas", 9, FontStyle.Bold);
+            rtbLogs.SelectionColor = Color.DarkBlue;
+            rtbLogs.AppendText("--- Latest Analysis Result ---\n\n");
+
+            rtbLogs.SelectionFont = new Font("Consolas", 9, FontStyle.Regular);
+            rtbLogs.SelectionColor = Color.Black;
+            rtbLogs.AppendText(message);
+        }
+
+        private void CreateLogBox()
+        {
+            // Enable scrolling for the main container
+            this.flowLayoutPanel1.AutoScroll = true;
+
+            GroupBox grpResult = new GroupBox();
+            grpResult.Text = "Result View";
+            grpResult.Size = new Size(230, 300);
+
+            rtbLogs = new RichTextBox();
+            rtbLogs.Dock = DockStyle.Fill;
+            rtbLogs.ReadOnly = true;
+            rtbLogs.BackColor = Color.White;
+            rtbLogs.BorderStyle = BorderStyle.FixedSingle;
+            rtbLogs.Font = new Font("Consolas", 8);
+            rtbLogs.WordWrap = true;
+
+            grpResult.Controls.Add(rtbLogs);
+
+            this.flowLayoutPanel1.Controls.Add(grpResult);
+        }
+
         // --- ZOOM LOGIC ---
         private void Canvas_MouseWheel(object sender, MouseEventArgs e)
         {
@@ -79,6 +132,10 @@ namespace graphSNA.UI
 
             panel1.Invalidate();
         }
+        /// <summary>
+        /// Renders the graph elements onto the canvas, including nodes, edges, and paths.
+        /// </summary>
+        /// <param name="e">Paint event arguments containing the graphics object.</param>
         private void Canvas_Paint(object sender, PaintEventArgs e)
         {
             Graph graphToDraw = controller.ActiveGraph;
@@ -93,10 +150,10 @@ namespace graphSNA.UI
             g.ScaleTransform(zoomFactor, zoomFactor);
 
             // ========================================================================
-            // 1. DRAW EDGES (KENARLARI ÇİZ)
+            // 1. DRAW EDGES
             // ========================================================================
 
-            // Sayıları yazmak için font (Küçük ve okunaklı)
+            // Font for writing numbers (Small and legible)
             using (Font weightFont = new Font("Arial", 7, FontStyle.Regular))
             {
                 foreach (Edge edge in graphToDraw.Edges)
@@ -104,14 +161,14 @@ namespace graphSNA.UI
                     Point p1 = new Point(edge.Source.Location.X + NodeRadius, edge.Source.Location.Y + NodeRadius);
                     Point p2 = new Point(edge.Target.Location.X + NodeRadius, edge.Target.Location.Y + NodeRadius);
 
-                    // A. KALINLIK: Weight'e göre (1px - 5px arası)
+                    // A. THICKNESS: Based on weight (Between 1px - 8px)
                     float thickness = 1.0f + (float)(edge.Weight * 4.0f);
-                    if (thickness > 8) thickness = 8; // Çok aşırı kalınlaşmasın
+                    if (thickness > 8) thickness = 8; // Prevent excessive thickness
 
-                    // B. RENK: Standart Gri (Röntgen modunu kapattık)
+                    // B. COLOR: Standard Gray (X-ray mode disabled)
                     Color edgeColor = Color.FromArgb(180, 160, 160, 160);
 
-                    // Çizgiyi Çiz
+                    // Draw the line
                     using (Pen dynamicPen = new Pen(edgeColor, thickness))
                     {
                         dynamicPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
@@ -120,12 +177,12 @@ namespace graphSNA.UI
                     }
 
                     // =========================================================
-                    // C. SAYI YAZDIRMA (GÜNCELLENEN KISIM) 🛠️
+                    // C. PRINTING NUMBERS (UPDATED SECTION)
                     // =========================================================
-                    // Sadece kutucuk işaretliyse sayıları yaz!
+                    // Print numbers only if the checkbox is checked!
                     if (chkShowWeights.Checked)
                     {
-                        // Çizginin tam orta noktasını bul
+                        // Find the midpoint of the line
                         float midX = (p1.X + p2.X) / 2;
                         float midY = (p1.Y + p2.Y) / 2;
 
@@ -144,11 +201,11 @@ namespace graphSNA.UI
                 }
 
                 // =========================================================
-                // 1.5. HIGHLIGHT PATH (YOLU BOYA) 🌟
+                // 1.5. HIGHLIGHT PATH
                 // =========================================================
                 if (controller.HighlightedPath != null && controller.HighlightedPath.Count > 1)
                 {
-                    using (Pen pathPen = new Pen(Color.LimeGreen, 4)) // Kalın Yeşil
+                    using (Pen pathPen = new Pen(Color.LimeGreen, 4)) // Thick Green
                     {
                         pathPen.StartCap = LineCap.Round;
                         pathPen.EndCap = LineCap.Round;
@@ -168,7 +225,7 @@ namespace graphSNA.UI
             }
 
             // ========================================================================
-            // 2. DRAW NODES (DÜĞÜMLERİ ÇİZ - AYNI KALDI)
+            // 2. DRAW NODES (REMAINS THE SAME)
             // ========================================================================
             Font font = new Font("Arial", 8, FontStyle.Regular);
 
@@ -203,23 +260,23 @@ namespace graphSNA.UI
             }
 
             // ========================================================================
-            // 3. GHOST LINE (HAYALET ÇİZGİ - AYNI KALDI)
+            // 3. GHOST LINE (REMAINS THE SAME)
             // ========================================================================
             if (isDraggingEdge && edgeSourceNode != null)
             {
-                // 1. Farenin Ekran Konumunu -> Dünya Konumuna (World Coords) Çevir
+                // 1. Convert Mouse Screen Position -> World Coordinates
                 float mouseWorldX = (currentMousePos.X - panOffsetX) / zoomFactor;
                 float mouseWorldY = (currentMousePos.Y - panOffsetY) / zoomFactor;
 
                 PointF targetPoint = new PointF(mouseWorldX, mouseWorldY);
 
-                // 2. Kaynak Düğümün Merkezini Bul
+                // 2. Find the Center of the Source Node
                 PointF sourcePoint = new PointF(
                     edgeSourceNode.Location.X + NodeRadius,
                     edgeSourceNode.Location.Y + NodeRadius
                 );
 
-                // 3. Çizgiyi Çiz
+                // 3. Draw the Line
                 using (Pen ghostPen = new Pen(Color.Red, 2))
                 {
                     ghostPen.DashStyle = DashStyle.Dot;
@@ -227,7 +284,7 @@ namespace graphSNA.UI
                 }
             }
         }
-        // Koordinat Dönüşüm Yardımcısı (Eğer yoksa ekleyin, varsa kullanın)
+        // Coordinate Transformation Helper (Add if missing, use if exists)
         private Point ApplyTransform(Point worldPoint)
         {
             return new Point(
@@ -239,25 +296,25 @@ namespace graphSNA.UI
         {
             if (!isPanning && !isDraggingEdge)
             {
-                // Koordinat çevirimi
+                // Coordinate conversion
                 float worldX = (e.X - panOffsetX) / zoomFactor;
                 float worldY = (e.Y - panOffsetY) / zoomFactor;
                 Point worldPoint = new Point((int)worldX, (int)worldY);
 
-                // Altında bir şey var mı?
-                // Edge için geniş toleransı (15f) burada da kullanıyoruz
+                // Is there anything underneath?
+                // Using wide tolerance (15f) for Edge here as well
                 bool isOverNode = controller.FindNodeAtPoint(worldPoint, NodeRadius) != null;
                 bool isOverEdge = controller.FindEdgeAtPoint(worldPoint, 15f) != null;
 
                 if (isOverNode || isOverEdge)
-                    panel1.Cursor = Cursors.Hand; // Tıklanabilir el işareti 👆
+                    panel1.Cursor = Cursors.Hand; // Hand cursor for clickable items 👆
                 else
                     panel1.Cursor = Cursors.Default;
             }
             if (isDraggingEdge)
             {
-                currentMousePos = e.Location; // Farenin ekran koordinatı
-                panel1.Invalidate(); // Çizgiyi tekrar çiz
+                currentMousePos = e.Location; // Mouse screen coordinates
+                panel1.Invalidate(); // Redraw the line
                 return;
             }
             if (isPanning)
@@ -276,10 +333,10 @@ namespace graphSNA.UI
         }
         private void Canvas_MouseClick(object sender, MouseEventArgs e)
         {
-            // Eğer az önce Pan yaptıysak veya CTRL basılıysa MENÜ AÇMA!
+            // Do NOT open the menu if panning was just performed or CTRL is pressed!
             if (isPanning || isDraggingEdge || Control.ModifierKeys == Keys.Control) return;
 
-            // --- KOORDİNAT HESAPLARI ---
+            // --- COORDINATE CALCULATIONS ---
             float worldX = (e.X - panOffsetX) / zoomFactor;
             float worldY = (e.Y - panOffsetY) / zoomFactor;
             Point worldPoint = new Point((int)worldX, (int)worldY);
@@ -287,44 +344,44 @@ namespace graphSNA.UI
             Node clickedNode = controller.FindNodeAtPoint(worldPoint, NodeRadius);
             Edge clickedEdge = controller.FindEdgeAtPoint(worldPoint);
 
-            // --- SAĞ TIK (Context Menu) ---
+            // --- RIGHT CLICK (Context Menu) ---
             if (e.Button == MouseButtons.Right)
             {
 
-                lastRightClickPoint = worldPoint; // Yeni düğüm eklenecekse buraya eklensin
-                // Sağ tık da bir seçimdir ama "Görsel Seçim" yapmasın, sadece menüyü hazırlasın
-                // İstersen sağ tıkla seçimi kaldırmak için: selectedNode = clickedNode; satırını silebilirsin.
-                // Ama genelde sağ tıklanan öğe üzerinde işlem yapılır:
+                lastRightClickPoint = worldPoint; // If a new node is to be added, add it here
+                // Right click is also a selection but it shouldn't perform "Visual Selection", just prepare the menu
+                // If you want to clear selection on right click, you can remove: selectedNode = clickedNode;
+                // However, actions are usually performed on the right-clicked item:
                 selectedNode = clickedNode;
 
-                // 1. DÜĞÜM MENÜSÜ
+                // 1. NODE MENU
                 if (clickedNode != null)
                 {
                     selectedNode = clickedNode;
-                    // Menüyü ayarla (Sadece Node işlemleri)
-                    graphContextMenu.Items[0].Visible = false; // Ekle
-                    graphContextMenu.Items[1].Visible = true;  // Node Sil
-                    graphContextMenu.Items[2].Visible = true;  // Düzenle
-                                                               // Edge Silme butonu varsa gizle
+                    // Configure menu (Only Node operations)
+                    graphContextMenu.Items[0].Visible = false; // Add
+                    graphContextMenu.Items[1].Visible = true;  // Delete Node
+                    graphContextMenu.Items[2].Visible = true;  // Edit
+                                                               // Hide Delete Edge button if it exists
                     if (graphContextMenu.Items.Count > 3) graphContextMenu.Items[3].Visible = false;
 
                     graphContextMenu.Show(panel1, e.Location);
                 }
-                // 2. EDGE MENÜSÜ (Yeni!)
+                // 2. EDGE MENU (New!)
                 else if (clickedEdge != null)
                 {
                     selectedEdge = clickedEdge;
-                    // Menüye "Edge Sil" şıkkı eklemeliyiz.
-                    // (Aşağıda menüye dinamik ekleme yapacağız)
+                    // We should add "Delete Edge" option to the menu.
+                    // (We will add it dynamically below)
 
                     ContextMenuStrip edgeMenu = new ContextMenuStrip();
-                    edgeMenu.Items.Add("Bağlantıyı Sil").Click += (s, args) => {
+                    edgeMenu.Items.Add("Delete Connection").Click += (s, args) => {
                         controller.RemoveEdge(selectedEdge.Source, selectedEdge.Target);
                         panel1.Invalidate();
                     };
                     edgeMenu.Show(panel1, e.Location);
                 }
-                // 3. BOŞLUK (Node Ekle)
+                // 3. EMPTY SPACE (Add Node)
                 else
                 {
                     graphContextMenu.Items[0].Visible = true;
@@ -339,16 +396,16 @@ namespace graphSNA.UI
             }
 
             // =================================================================
-            // 🖱️ SOL TIKLAMA (Sadece Seçim ve Panel Güncelleme)
+            // LEFT CLICK (Selection and Panel Update Only)
             // =================================================================
             if (e.Button == MouseButtons.Left)
             {
-                // 1. Yol Bulma Modu mu?
+                // 1. Is Path Finding Mode active?
                 if (isSelectingNodesForPathFinding)
                 {
                     HandleShortestPathSelection(clickedNode);
                 }
-                // 2. Gezinti (Traversal) Modu mu?
+                // 2. Is Traversal Mode active?
                 else if (isSelectingForTraversal)
                 {
                     if (clickedNode != null)
@@ -359,23 +416,23 @@ namespace graphSNA.UI
                         isSelectingForTraversal = false;
                     }
                 }
-                // 3. Normal Seçim Modu
+                // 3. Normal Selection Mode
                 else
                 {
-                    selectedNode = clickedNode; // Tıklananı seç (veya boşluğu)
+                    selectedNode = clickedNode; // Select the clicked item (or empty space)
 
                     if (selectedNode != null)
                     {
-                        // ARTIK MESSAGEBOX YOK! Paneli güncelle.
+                        // NO MORE MESSAGEBOX! Update the panel.
                         UpdateNodeInfoPanel(selectedNode);
                     }
                     else
                     {
-                        // Boşluğa tıklandı -> Paneli temizle
+                        // Clicked on empty space -> Clear the panel
                         ClearNodeInfoPanel();
                     }
 
-                    panel1.Invalidate(); // Seçim rengini (Sarı) güncellemek için çiz
+                    panel1.Invalidate(); // Redraw to update selection color (Yellow)
                 }
             }
         }
@@ -383,29 +440,29 @@ namespace graphSNA.UI
         {
             if (isDraggingEdge)
             {
-                // Bırakılan yerde düğüm var mı?
+                // Is there a node at the drop location?
                 float worldX = (e.X - panOffsetX) / zoomFactor;
                 float worldY = (e.Y - panOffsetY) / zoomFactor;
                 Point worldPoint = new Point((int)worldX, (int)worldY);
                 Node targetNode = controller.FindNodeAtPoint(worldPoint, NodeRadius);
 
-                // Geçerli bir hedef mi?
+                // Is it a valid target?
                 if (targetNode != null && targetNode != edgeSourceNode)
                 {
-                    // Controller'a sor: "Ekleyebildin mi?"
+                    // Ask Controller: "Were you able to add it?"
                     bool success = controller.AddEdge(edgeSourceNode, targetNode);
 
                     if (success)
                     {
-                        MessageBox.Show($"Bağlantı kuruldu: {edgeSourceNode.Name} <-> {targetNode.Name}", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show($"Connection established: {edgeSourceNode.Name} <-> {targetNode.Name}", "Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                     else
                     {
-                        MessageBox.Show("Bu bağlantı zaten mevcut!", "Uyarı", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        MessageBox.Show("This connection already exists!", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     }
                 }
 
-                // Temizlik
+                // Cleanup
                 isDraggingEdge = false;
                 edgeSourceNode = null;
                 panel1.Invalidate();
@@ -414,39 +471,39 @@ namespace graphSNA.UI
             if (isPanning)
             {
                 isPanning = false;
-                panel1.Cursor = Cursors.Default; // İmleci normale döndür
+                panel1.Cursor = Cursors.Default; // Reset cursor to default
             }
         }
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
         {
-            // Koordinat Çevirimi
+            // Coordinate Conversion
             float worldX = (e.X - panOffsetX) / zoomFactor;
             float worldY = (e.Y - panOffsetY) / zoomFactor;
             Point worldPoint = new Point((int)worldX, (int)worldY);
             Node clickedNode = controller.FindNodeAtPoint(worldPoint, NodeRadius);
 
-            // --- EDGE BAŞLATMA ---
-            // Şart: Sol Tık + SHIFT basılı + Bir düğüme tıklandı
+            // --- INITIATE EDGE DRAWING ---
+            // Condition: Left Click + SHIFT pressed + A node is clicked
             if (e.Button == MouseButtons.Left && Control.ModifierKeys == Keys.Shift && clickedNode != null)
             {
                 isDraggingEdge = true;
                 edgeSourceNode = clickedNode;
-                currentMousePos = e.Location; // Başlangıç noktası
+                currentMousePos = e.Location; // Starting point
                 return;
             }
-            // 1. PAN BAŞLATMA (CTRL + SAĞ TIK)
+            // 1. INITIATE PAN (CTRL + RIGHT/LEFT CLICK)
             if ((e.Button == MouseButtons.Right || e.Button == MouseButtons.Left) && Control.ModifierKeys == Keys.Control)
             {
                 isPanning = true;
-                panStartPoint = e.Location; // Farenin ilk bastığı yer
+                panStartPoint = e.Location; // First point of mouse press
                 panel1.Cursor = Cursors.SizeAll; // Visual feedback
             }
 
-            // 2. SAĞ TIK MENÜ HAZIRLIĞI (SADECE SAĞ TIK)
+            // 2. PREPARE RIGHT CLICK MENU (RIGHT CLICK ONLY)
             else if (e.Button == MouseButtons.Right)
             {
-                // CTRL basılı değilse, bu bir menü açma isteğidir.
-                // Konumu kaydedelim (MouseClick'te kullanacağız)
+                // If CTRL is not pressed, this is a menu request.
+                // Save the location (to be used in MouseClick)
                 _rightMouseDownLocation = e.Location;
             }
         }
@@ -455,20 +512,20 @@ namespace graphSNA.UI
             MessageBox.Show($"Name: {node.Name}\nActivity: {node.Activity}\nInteraction: {node.Interaction}", "Node Details");
         }
         private void ClearNodeDetails() { }
-        // Seçili düğümün bilgilerini sağ panele yazar
+        // Writes selected node information to the right panel
         private void UpdateNodeInfoPanel(Node node)
         {
-            // TextBox isimlerini kendi projenizdekilerle eşleştirin
+            // Map TextBox names to those in your project
             textBox1.Text = node.Name;
             textBox2.Text = node.Activity.ToString();
             textBox3.Text = node.Interaction.ToString();
 
-            // Sil ve Düzenle butonlarını aktif et
-            // btnDeleteNode.Enabled = true; (Eğer butonlarınız varsa)
+            // Enable Delete and Edit buttons
+            // btnDeleteNode.Enabled = true; (If buttons exist)
             // btnEditNode.Enabled = true;
         }
 
-        // Paneli temizler (Boşluğa tıklayınca)
+        // Clears the panel (when clicking on empty space)
         private void ClearNodeInfoPanel()
         {
             textBox1.Text = "";

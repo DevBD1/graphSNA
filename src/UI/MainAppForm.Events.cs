@@ -9,7 +9,8 @@ using graphSNA.Model.Foundation;
 namespace graphSNA.UI
 {
     /// <summary>
-    ///  Handles Event Wiring and Button & Click Logic
+    ///  Manages UI events, algorithm triggers (Shortest Path, Traversal, etc.), 
+    ///  file operations, and visualization updates for the main application form.
     /// </summary>
     public partial class MainAppForm
     {
@@ -34,14 +35,15 @@ namespace graphSNA.UI
             // Updating Statistics
             this.tabControl1.SelectedIndexChanged += TabSelectedIndexChanged;
             this.button9.Click += BtnRefreshStats_Click;
-            // YENİ: Layout (Yeniden Dizilim) Butonu
+
+            // Layout (Re-arrangement) Button
             this.button3.Click += BtnApplyLayout_Click;
             this.button4.Click += BtnWeighted_Click;
-            // CheckBox değiştiği an ekranı yeniden çiz (Invalidate)
+
+            // Redraw (Invalidate) screen immediately when CheckBox changes
             this.chkShowWeights.CheckedChanged += (s, e) => panel1.Invalidate();
             this.button5.Click += btnEditNode_Click;
             this.button6.Click += btnDeleteNode_Click;
-
         }
 
         // --- 1. FILE OPERATIONS ---
@@ -55,49 +57,49 @@ namespace graphSNA.UI
                     controller.LoadGraph(ofd.FileName);
                     groupBox1.Text = $"File: {Path.GetFileName(ofd.FileName)}";
                     controller.RecalculateAllWeights();
-                    //Distributes nodes across the screen randomly and uniformly
+
+                    // Distributes nodes across the screen randomly and uniformly
                     controller.ApplyForceLayout(panel1.Width, panel1.Height);
 
-                    //// Layout bittikten hemen sonra:
-                    // 1. Sanal Genişliği Hesapla
+                    // Immediately after layout finishes:
+                    // 1. Calculate Virtual Width
                     int nodeCount = controller.ActiveGraph.Nodes.Count;
-                    // Min 800px olsun, yoksa çok küçük graflar ezilmesin.
+                    // Min 800px to prevent small graphs from being crushed.
                     int virtualWidth = Math.Max(800, nodeCount * 20);
                     int virtualHeight = Math.Max(600, nodeCount * 20);
 
-                    // 2. Fizik Motorunu Çalıştır
+                    // 2. Run Physics Engine
                     controller.ApplyForceLayout(virtualWidth, virtualHeight);
 
-                    // --- 3. AKILLI ORTALAMA VE SIĞDIRMA (FIX) ---
+                    // --- 3. SMART CENTERING AND FITTING (FIX) ---
 
-                    // Grafiğin sanal merkezi (World Coordinates)
+                    // Virtual center of the graph (World Coordinates)
                     float graphCenterX = virtualWidth / 2.0f;
                     float graphCenterY = virtualHeight / 2.0f;
 
-                    // Panelin merkezi (Screen Coordinates)
+                    // Center of the panel (Screen Coordinates)
                     float panelCenterX = panel1.Width / 2.0f;
                     float panelCenterY = panel1.Height / 2.0f;
 
-                    // Ekrana sığması için gereken Zoom oranını bul
+                    // Find the Zoom ratio required to fit on screen
                     float scaleX = (float)panel1.Width / virtualWidth;
                     float scaleY = (float)panel1.Height / virtualHeight;
 
-                    // En kısıtlı kenara göre zoom yap (Kenarlardan %10 boşluk bırak: 0.9f)
+                    // Zoom based on the most constrained edge (Leave 10% margin: 0.9f)
                     zoomFactor = Math.Min(scaleX, scaleY) * 0.9f;
 
-                    // Çok küçük dosyalarda devasa zoom yapmasın (Max Zoom 1.0 olsun)
+                    // Prevent massive zoom in very small files (Max Zoom 1.0)
                     if (zoomFactor > 1.0f) zoomFactor = 1.0f;
-                    // Çok da küçülmesin (Min Zoom 0.1)
+                    // Prevent too much shrinking (Min Zoom 0.1)
                     if (zoomFactor < 0.1f) zoomFactor = 0.1f;
 
-                    // Pan (Kaydırma) Değerini Hesapla:
-                    // Formül: HedefEkran = (Dünya * Zoom) + Pan
-                    // Pan = HedefEkran - (Dünya * Zoom)
+                    // Calculate Pan (Offset) Value:
+                    // Formula: TargetScreen = (World * Zoom) + Pan
+                    // Pan = TargetScreen - (World * Zoom)
                     panOffsetX = panelCenterX - (graphCenterX * zoomFactor);
                     panOffsetY = panelCenterY - (graphCenterY * zoomFactor);
 
                     panel1.Invalidate();
-                    MessageBox.Show(Properties.Resources.Msg_Success);
                 }
                 catch (Exception ex)
                 {
@@ -105,13 +107,14 @@ namespace graphSNA.UI
                 }
             }
         }
+
         private void ExportCSV(object sender, EventArgs e)
         {
             SaveFileDialog sfd = new SaveFileDialog { Filter = "CSV Files|*.csv" };
             if (sfd.ShowDialog() == DialogResult.OK)
             {
                 controller.SaveGraph(sfd.FileName);
-                MessageBox.Show("File saved successfully.");
+                DisplayResult($"Exported: {Path.GetFileName(sfd.FileName)}");
             }
         }
 
@@ -131,6 +134,7 @@ namespace graphSNA.UI
 
             MessageBox.Show("Please select the START node from the graph.", "Step 1");
         }
+
         private void HandleShortestPathSelection(Node clickedNode)
         {
             if (startNodeForPathFinding == null)
@@ -157,6 +161,7 @@ namespace graphSNA.UI
             }
             panel1.Invalidate();
         }
+
         private void RunShortestPathAlgorithm()
         {
             string algoType = radioAstar.Checked ? "A*" : "Dijkstra";
@@ -166,17 +171,20 @@ namespace graphSNA.UI
             {
                 controller.HighlightedPath = result.path; // Store for visualization
                 txtCost.Text = $"{result.cost:F2}";
-                // MessageBox.Show removed for visualization
+
+                string pathStr = string.Join("->", result.path.Select(n => n.Name)); // Compact arrows
+                DisplayResult($"Algorithm: {algoType}\nFrom: {startNodeForPathFinding.Name}\nTo: {endNodeForPathFinding.Name}\nTotal Cost: {result.cost:F2}\nPath: {pathStr}");
             }
             else
             {
                 controller.HighlightedPath = null;
                 txtCost.Text = "None";
+                DisplayResult($"Algorithm: {algoType}\nResult: No path found.");
                 MessageBox.Show("No path found.", "Result");
             }
             panel1.Invalidate(); // Trigger redraw
         }
-        
+
         // --- 3. TRAVERSAL (BFS/DFS) LOGIC ---
         private void RunTraverse(object sender, EventArgs e)
         {
@@ -191,6 +199,7 @@ namespace graphSNA.UI
 
             MessageBox.Show("Click on a START node to begin traversal.", "Traversal Mode");
         }
+
         private void RunTraversalAlgorithm(Node startNode)
         {
             string algo = radioDFS.Checked ? "DFS" : "BFS";
@@ -201,14 +210,16 @@ namespace graphSNA.UI
                 StringBuilder sb = new StringBuilder();
                 sb.AppendLine($"Algorithm: {algo}");
                 sb.AppendLine($"Start Node: {startNode.Name}");
-                sb.AppendLine($"Visited: {resultOrder.Count} nodes");
-                sb.AppendLine("--------------------------------");
-                string flow = string.Join(" -> ", resultOrder.Select(n => n.Name));
+                sb.AppendLine($"Visited Nodes: {resultOrder.Count}");
+                sb.AppendLine("Traversal Order:");
+
+                string flow = string.Join("->", resultOrder.Select(n => n.Name));
                 sb.AppendLine(flow);
-                MessageBox.Show(sb.ToString(), "Traversal Result");
+
+                DisplayResult(sb.ToString());
             }
         }
-        
+
         // --- 4. WELSH-POWELL COLORING ---
         private void RunColoring(object sender, EventArgs e)
         {
@@ -221,7 +232,7 @@ namespace graphSNA.UI
             int colorCount = controller.ColorGraph();
             panel1.Invalidate();
 
-            MessageBox.Show($"Graph colored successfully!\nChromatic Number: {colorCount}", "Completed");
+            DisplayResult($"Algorithm: Welsh-Powell Coloring\nStatus: Success\nChromatic Number: {colorCount}");
         }
 
         // --- 5. STATISTICS (DEGREE CENTRALITY) ---
@@ -233,12 +244,14 @@ namespace graphSNA.UI
                 UpdateStatsTable();
             }
         }
+
         private void BtnRefreshStats_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null) return;
             UpdateStatsTable();
-            MessageBox.Show("Liste güncellendi.", "Bilgi", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show("List has been updated.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
+
         private void UpdateStatsTable()
         {
             if (controller.ActiveGraph == null) return;
@@ -250,10 +263,10 @@ namespace graphSNA.UI
             dataGridView1.Columns.Clear();
 
             // Columns
-            dataGridView1.Columns.Add("Rank", "Sıra");
-            dataGridView1.Columns.Add("Name", "İsim");
-            dataGridView1.Columns.Add("Degree", "Derece");
-            dataGridView1.Columns.Add("Score", "Merkezilik Skoru");
+            dataGridView1.Columns.Add("Rank", "Rank");
+            dataGridView1.Columns.Add("Name", "Name");
+            dataGridView1.Columns.Add("Degree", "Degree");
+            dataGridView1.Columns.Add("Score", "Centrality Score");
 
             int rank = 1;
             foreach (var node in topNodes)
@@ -270,32 +283,31 @@ namespace graphSNA.UI
         {
             graphContextMenu = new ContextMenuStrip();
 
-            // --- MENÜ ÖĞELERİNİ OLUŞTUR ---
-            var itemAdd = new ToolStripMenuItem("Yeni Kişi Ekle");
-            var itemDeleteNode = new ToolStripMenuItem("Seçili Kişiyi Sil");
-            var itemEditNode = new ToolStripMenuItem("Düzenle (Özellikler)");
-            var itemDeleteEdge = new ToolStripMenuItem("Bağlantıyı Sil"); // Yeni!
+            // --- CREATE MENU ITEMS ---
+            var itemAdd = new ToolStripMenuItem("Add New Person");
+            var itemDeleteNode = new ToolStripMenuItem("Delete Selected Person");
+            var itemEditNode = new ToolStripMenuItem("Edit (Properties)");
+            var itemDeleteEdge = new ToolStripMenuItem("Delete Connection");
 
-            // --- 1. YENİ KİŞİ EKLE ---
+            // --- 1. ADD NEW PERSON ---
             itemAdd.Click += (s, e) => {
-                // Yeni form yapımız (Komşusuz, sade)
-                InputNodeForm form = new InputNodeForm("Yeni Kişi Ekle");
+                InputNodeForm form = new InputNodeForm("Add New Person");
 
                 if (form.ShowDialog() == DialogResult.OK)
                 {
-                    // Controller üzerinden ekle (lastRightClickPoint: sağ tıklanan yer)
+                    // Add via controller (lastRightClickPoint: location where right-clicked)
                     controller.AddNode(form.NodeName, form.Activity, form.Interaction, 0, lastRightClickPoint);
                     panel1.Invalidate();
                 }
             };
 
-            // --- 2. KİŞİYİ SİL ---
+            // --- 2. DELETE PERSON ---
             itemDeleteNode.Click += (s, e) => {
                 if (selectedNode != null)
                 {
                     var result = MessageBox.Show(
-                        $"'{selectedNode.Name}' kişisini ve bağlantılarını silmek istiyor musunuz?",
-                        "Silme Onayı",
+                        $"Are you sure you want to delete '{selectedNode.Name}' and all associated connections?",
+                        "Confirm Deletion",
                         MessageBoxButtons.YesNo,
                         MessageBoxIcon.Warning);
 
@@ -303,170 +315,167 @@ namespace graphSNA.UI
                     {
                         controller.RemoveNode(selectedNode);
                         selectedNode = null;
-                        ClearNodeInfoPanel(); // Sağ paneli temizle
+                        ClearNodeInfoPanel(); // Clear the right panel
                         panel1.Invalidate();
                     }
                 }
             };
 
-            // --- 3. DÜZENLE ---
+            // --- 3. EDIT ---
             itemEditNode.Click += (s, e) => {
                 if (selectedNode != null)
                 {
-                    InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
+                    InputNodeForm form = new InputNodeForm("Edit Person");
 
-                    // Mevcut verileri forma yükle
+                    // Load existing data into form
                     form.NodeName = selectedNode.Name;
                     form.Activity = selectedNode.Activity;
                     form.Interaction = selectedNode.Interaction;
 
                     if (form.ShowDialog() == DialogResult.OK)
                     {
-                        // Güncelle
+                        // Update
                         controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
 
-                        // Sağ paneli de anlık güncelle
+                        // Update the right panel immediately
                         UpdateNodeInfoPanel(selectedNode);
                         panel1.Invalidate();
                     }
                 }
             };
 
-            // --- 4. BAĞLANTIYI (EDGE) SİL ---
+            // --- 4. DELETE CONNECTION (EDGE) ---
             itemDeleteEdge.Click += (s, e) => {
                 if (selectedEdge != null)
                 {
-                    // Controller'da yazdığımız RemoveEdge metodunu çağır
+                    // Call the RemoveEdge method in the controller
                     controller.RemoveEdge(selectedEdge.Source, selectedEdge.Target);
                     selectedEdge = null;
                     panel1.Invalidate();
                 }
             };
 
-            // --- MENÜYE EKLEME SIRASI ---
-            // İndex 0: Ekle
-            // İndex 1: Node Sil
-            // İndex 2: Düzenle
-            // İndex 3: Edge Sil
+            // --- MENU ITEM ORDER ---
+            // Index 0: Add
+            // Index 1: Delete Node
+            // Index 2: Edit
+            // Index 3: Delete Edge
             graphContextMenu.Items.Add(itemAdd);
             graphContextMenu.Items.Add(itemDeleteNode);
             graphContextMenu.Items.Add(itemEditNode);
-            graphContextMenu.Items.Add(new ToolStripSeparator()); // Araya çizgi
+            graphContextMenu.Items.Add(new ToolStripSeparator()); // Separator line
             graphContextMenu.Items.Add(itemDeleteEdge);
         }
-        
+
         private void BtnApplyLayout_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null || controller.ActiveGraph.Nodes.Count == 0)
             {
-                MessageBox.Show("Önce bir graf yükleyin veya oluşturun.");
+                MessageBox.Show("Please load or create a graph first.");
                 return;
             }
 
-            // İmleci bekleme moduna al (Hesaplama sürerse diye)
+            // Set cursor to wait mode
             Cursor = Cursors.WaitCursor;
 
-            // 1. Fizik motorunu çalıştır (100 iterasyon boyunca en iyi konumu arar)
-            // Panel boyutlarını veriyoruz ki dışarı taşmasınlar.
-            // Düğüm sayısına göre alan belirle (Min 1000px, her düğüm için ekstra alan)
+            // 1. Run physics engine (searches for best position for 100 iterations)
+            // Providing panel dimensions to prevent nodes from going out of bounds.
             int nodeCount = controller.ActiveGraph.Nodes.Count;
-            int virtualWidth = Math.Max(panel1.Width, nodeCount * 20);  // Düğüm başına 50px alan
+            int virtualWidth = Math.Max(panel1.Width, nodeCount * 20);  // 20px area per node
             int virtualHeight = Math.Max(panel1.Height, nodeCount * 20);
 
             controller.ApplyForceLayout(virtualWidth, virtualHeight);
 
-            // 2. Yeni koordinatlara göre ekranı tekrar çiz
+            // 2. Redraw screen based on new coordinates
             panel1.Invalidate();
 
-            // İmleci düzelt
+            // Reset cursor
             Cursor = Cursors.Default;
         }
+
         private void BtnWeighted_Click(object sender, EventArgs e)
         {
             if (controller.ActiveGraph == null) return;
 
             Cursor = Cursors.WaitCursor;
 
-            // 1. ÖNCE: Tüm ağırlıkları matematiksel olarak hesapla
+            // 1. FIRST: Recalculate all weights mathematically
             controller.RecalculateAllWeights();
 
-            // 2. SONRA: Bu ağırlıklara göre fizik motorunu çalıştır
-            // (Layout.cs artık yeni Weight değerlerini kullanacak)
-            // Alan boyutunu hesapla (önceki adımda yaptığımız 'akıllı alan' mantığı)
+            // 2. SECOND: Run physics engine based on these weights
             int nodeCount = controller.ActiveGraph.Nodes.Count;
             int virtualWidth = Math.Max(800, nodeCount * 50);
             int virtualHeight = Math.Max(600, nodeCount * 50);
 
             controller.ApplyForceLayout(virtualWidth, virtualHeight);
 
-            // 3. EN SON: Ekranı ortala ve boya
-            // (Buraya 'Akıllı Zoom/Pan' kod bloğunu ekleyebilirsin veya basitçe Invalidate)
-
-            // Basitçe yeniden çizelim (Zoom ayarları korunsun istiyorsan):
+            // 3. FINALLY: Redraw the screen
             panel1.Invalidate();
 
             Cursor = Cursors.Default;
         }
+
         private void btnEditNode_Click(object sender, EventArgs e)
         {
-            // 1. Güvenlik Kontrolü: Seçili düğüm var mı?
+            // 1. Safety Check: Is a node selected?
             if (selectedNode == null)
             {
-                MessageBox.Show("Lütfen önce düzenlemek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select the person you want to edit first.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Formu Hazırla
-            InputNodeForm form = new InputNodeForm("Kişiyi Düzenle");
+            // 2. Prepare Form
+            InputNodeForm form = new InputNodeForm("Edit Person");
 
-            // Mevcut verileri forma doldur (Kullanıcı sıfırdan yazmasın)
+            // Fill form with current data
             form.NodeName = selectedNode.Name;
             form.Activity = selectedNode.Activity;
             form.Interaction = selectedNode.Interaction;
 
-            // 3. Formu Göster ve Sonucu Bekle
+            // 3. Show Form and Wait for Result
             if (form.ShowDialog() == DialogResult.OK)
             {
-                // Verileri güncelle
+                // Update data
                 controller.UpdateNode(selectedNode, form.NodeName, form.Activity, form.Interaction);
 
-                // Değerler değiştiği için kenar ağırlıklarını (Weight) tekrar hesapla!
+                // Recalculate edge weights as values have changed!
                 controller.RecalculateAllWeights();
 
-                // Sağ paneldeki bilgileri güncelle
+                // Update info in the right panel
                 UpdateNodeInfoPanel(selectedNode);
 
-                // Ekranı yenile (Kalınlıklar ve renkler değişsin)
+                // Refresh screen
                 panel1.Invalidate();
             }
         }
+
         private void btnDeleteNode_Click(object sender, EventArgs e)
         {
-            // 1. Seçim Kontrolü
+            // 1. Selection Check
             if (selectedNode == null)
             {
-                MessageBox.Show("Lütfen silmek istediğiniz kişiyi seçin.", "Seçim Yok", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Please select the person you want to delete first.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. Onay İste
+            // 2. Confirm Deletion
             var result = MessageBox.Show(
-                $"'{selectedNode.Name}' kişisini ve tüm bağlantılarını silmek istediğinize emin misiniz?",
-                "Silme Onayı",
+                $"Are you sure you want to delete '{selectedNode.Name}' and all associated connections?",
+                "Confirm Deletion",
                 MessageBoxButtons.YesNo,
                 MessageBoxIcon.Warning);
 
-            // 3. Silme İşlemi
+            // 3. Execution
             if (result == DialogResult.Yes)
             {
                 controller.RemoveNode(selectedNode);
 
-                // Bir kişi silinince komşuların bağlantı sayısı değişir, ağırlıkları yenilemek iyidir.
+                // Refresh weights as neighbor counts change when someone is deleted
                 controller.RecalculateAllWeights();
 
                 selectedNode = null;
-                ClearNodeInfoPanel(); // Sağ paneldeki yazıları temizle
-                panel1.Invalidate();  // Grafiği tekrar çiz
+                ClearNodeInfoPanel(); // Clear right panel texts
+                panel1.Invalidate();  // Redraw graph
             }
         }
     }
